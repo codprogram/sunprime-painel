@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sun Prime - Painel</title>
+</head>
+<body>
+
+<h2>⚡ Painel de Leads Sun Prime</h2>
+
+<div id="lista"></div>
+
+<script>
+const API = "/api/pedidos";
+
+async function carregar() {
+  const res = await fetch(API);
+  const dados = await res.json();
+
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '';
+
+  dados.forEach(d => {
+    const div = document.createElement('div');
+
+    div.innerHTML = `
+      <hr>
+      👤 ${d.nome || 'Cliente'}<br>
+      📱 ${d.telefone || ''}<br>
+      📍 ${d.cidade || ''}<br>
+      📊 Status: ${d.status || 'novo'}<br><br>
+
+      <button onclick="mudar(${d.id}, 'em atendimento')">Atender</button>
+      <button onclick="mudar(${d.id}, 'finalizado')">Finalizar</button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+async function mudar(id, status) {
+  await fetch(API, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ id, status })
+  });
+
+  carregar();
+}
+
+setInterval(carregar, 2000);
+carregar();
+</script>
+
+</body>
+</html>
