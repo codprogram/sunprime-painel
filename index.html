@@ -1,17 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Sun Prime - Painel</title>
-</head>
-<body>
-
-<h2>⚡ Painel de Leads Sun Prime</h2>
-
-<button onclick="testeLead()">➕ Gerar Lead de Teste</button>  
-<div id="lista"></div>
-
 <script>
 const API = "/api/pedidos";
+
+async function testeLead() {
+  alert("clicou");
+
+  await fetch(API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      nome: "Cliente Teste",
+      telefone: "81999999999",
+      cidade: "Recife",
+      status: "novo"
+    })
+  });
+}
 
 async function carregar() {
   const res = await fetch(API);
@@ -28,29 +33,13 @@ async function carregar() {
       👤 ${d.nome || 'Cliente'}<br>
       📱 ${d.telefone || ''}<br>
       📍 ${d.cidade || ''}<br>
-      📊 Status: ${d.status || 'novo'}<br><br>
-
-      <button onclick="mudar(${d.id}, 'em atendimento')">Atender</button>
-      <button onclick="mudar(${d.id}, 'finalizado')">Finalizar</button>
+      📊 Status: ${d.status || 'novo'}<br>
     `;
 
     lista.appendChild(div);
   });
 }
 
-async function mudar(id, status) {
-  await fetch(API, {
-    method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ id, status })
-  });
-
-  carregar();
-}
-
 setInterval(carregar, 2000);
 carregar();
 </script>
-
-</body>
-</html>
