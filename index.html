@@ -151,8 +151,19 @@ function testeLead() {
   });
 }
 
-// ===== ATUALIZAR =====
+// ===== ATUALIZAR (CORRIGIDO) =====
 function atualizar(id,status){
+
+  // 🔥 MOVE IMEDIATO (UX)
+  const card = document.getElementById("lead-"+id);
+
+  if(card){
+    const destino =
+      status === "novo" ? "novo" :
+      status === "em atendimento" ? "atendimento" : "finalizado";
+
+    document.getElementById(destino).prepend(card);
+  }
 
   let payload={id,status};
 
