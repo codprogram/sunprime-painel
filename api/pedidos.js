@@ -104,6 +104,12 @@ async function deleteFinalizedLeads() {
     });
 }
 
+async function deleteAllLeads() {
+    return supabaseFetch("?id=not.is.null&select=id", {
+        method: "DELETE"
+    });
+}
+
 async function upsertLead(payload) {
     const id = String(payload.id || Date.now());
     const currentLead = await getLeadById(id);
@@ -175,6 +181,22 @@ export default async function handler(req, res) {
                 });
             }
 
+            if (scope === "all") {
+                if (!RESET_MASTER_KEY) {
+                    return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
+                }
+
+                if (masterKey !== RESET_MASTER_KEY) {
+                    return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
+                }
+
+                const deletedItems = await deleteAllLeads();
+                return jsonResponse(res, 200, {
+                    ok: true,
+                    deletedCount: Array.isArray(deletedItems) ? deletedItems.length : 0
+                });
+            }
+
             if (!id) {
                 return jsonResponse(res, 400, { ok: false, error: "ID obrigatorio" });
             }
@@ -195,6 +217,24 @@ export default async function handler(req, res) {
             }
 
             const deletedItems = await deleteFinalizedLeads();
+            return jsonResponse(res, 200, {
+                ok: true,
+                deletedCount: Array.isArray(deletedItems) ? deletedItems.length : 0
+            });
+        }
+
+        if (req.method === "POST" && req.body?.action === "reset_all") {
+            const masterKey = req.body?.masterKey;
+
+            if (!RESET_MASTER_KEY) {
+                return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
+            }
+
+            if (masterKey !== RESET_MASTER_KEY) {
+                return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
+            }
+
+            const deletedItems = await deleteAllLeads();
             return jsonResponse(res, 200, {
                 ok: true,
                 deletedCount: Array.isArray(deletedItems) ? deletedItems.length : 0

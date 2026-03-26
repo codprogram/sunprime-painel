@@ -1011,7 +1011,7 @@
                         </div>
                         <div class="top-actions">
                             <div class="toolbar-actions">
-                                <button class="button button-secondary" id="resetDoneButton">Resetar finalizados</button>
+                                <button class="button button-danger" id="resetAllButton">Zerar base</button>
                             </div>
                             <div class="view-toggle">
                                 <button class="toggle-button active" data-view="kanban">Kanban</button>
@@ -1060,8 +1060,8 @@
                 <section class="panel board">
                     <div class="section-top">
                         <div>
-                            <h2>Pipeline</h2>
-                            <p class="small">Kanban para triagem e lista para leitura analitica.</p>
+                            <h2>Central de Triagem</h2>
+                            <p class="small">Tudo que chega entra primeiro em `Novos`, onde o time assume e distribui.</p>
                         </div>
                         <div class="small" id="boardSummary">0 leads visiveis</div>
                     </div>
@@ -1589,7 +1589,9 @@
                 ],
                 owner: "Sem dono",
                 note: "",
-                sourceStatus: "Novo"
+                sourceStatus: "Novo",
+                stage: "new",
+                status: "AGUARDANDO_OPCAO"
             };
 
             const data = await apiRequest("POST", lead);
@@ -1626,11 +1628,14 @@
             showToast("Lead apagado com sucesso.", "success");
         }
 
-        async function resetFinalizedLeads() {
-            const masterKey = window.prompt("Digite a chave mestre para apagar todos os leads finalizados.");
+        async function resetAllLeads() {
+            const confirmed = window.confirm("Isso vai apagar todos os leads da base. Deseja continuar?");
+            if (!confirmed) return;
+
+            const masterKey = window.prompt("Digite a chave mestre para zerar toda a base de leads.");
             if (!masterKey) return;
 
-            showToast("Chave recebida. Validando e apagando finalizados...", "info");
+            showToast("Chave recebida. Validando e zerando a base...", "info");
 
             try {
                 const response = await fetch(API_URL, {
@@ -1639,7 +1644,7 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        action: "reset_finalized",
+                        action: "reset_all",
                         masterKey
                     })
                 });
@@ -1648,7 +1653,7 @@
                 const data = rawText ? JSON.parse(rawText) : {};
 
                 if (!response.ok || !data.ok) {
-                    const errorMessage = data.error || "Nao foi possivel resetar os finalizados.";
+                    const errorMessage = data.error || "Nao foi possivel zerar a base.";
                     showToast(errorMessage, "error");
                     window.alert(errorMessage);
                     return;
@@ -1658,24 +1663,11 @@
                 state.selectedLeadId = state.leads[0]?.id || null;
                 render();
 
-                if ((data.deletedCount || 0) === 0) {
-                    const diagnosticsResponse = await fetch(`${API_URL}?scope=finalized&diagnostics=1`, {
-                        cache: "no-store"
-                    });
-                    const diagnostics = await diagnosticsResponse.json();
-                    const message = diagnostics?.count
-                        ? `Nenhum lead foi apagado, mas ainda existem ${diagnostics.count} finalizado(s) detectado(s). Recarregue e tente novamente.`
-                        : "Nenhum lead finalizado foi encontrado para apagar.";
-                    showToast(message, diagnostics?.count ? "error" : "info");
-                    window.alert(message);
-                    return;
-                }
-
-                const message = `Reset concluido. ${data.deletedCount || 0} finalizado(s) apagado(s).`;
+                const message = `Base zerada com sucesso. ${data.deletedCount || 0} lead(s) apagado(s).`;
                 showToast(message, "success");
                 window.alert(message);
             } catch (error) {
-                const message = "Falha inesperada ao resetar finalizados.";
+                const message = "Falha inesperada ao zerar a base.";
                 showToast(message, "error");
                 window.alert(`${message}\n\n${error.message || error}`);
             }
@@ -1813,7 +1805,7 @@
         document.getElementById("refreshButton").addEventListener("click", loadLeads);
         document.getElementById("seedButton").addEventListener("click", seedLead);
         document.getElementById("notificationToggle").addEventListener("click", toggleNotifications);
-        document.getElementById("resetDoneButton").addEventListener("click", resetFinalizedLeads);
+        document.getElementById("resetAllButton").addEventListener("click", resetAllLeads);
 
         populateFilters();
         loadLeads();
