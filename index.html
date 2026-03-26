@@ -73,7 +73,7 @@ body { font-family: 'Inter', sans-serif; }
 const API="https://sunprime-painel.vercel.app/api/pedidos";
 
 // 🔥 WEBSOCKET
-const socket = new WebSocket("ws://localhost:3001");
+const socket = new WebSocket("sunprime-painel-production.up.railway.app");
 
 socket.onopen = () => {
   console.log("🔥 Conectado ao WebSocket");
