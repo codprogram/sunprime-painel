@@ -1638,15 +1638,9 @@
             showToast("Chave recebida. Validando e zerando a base...", "info");
 
             try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        action: "reset_all",
-                        masterKey
-                    })
+                const response = await fetch(`${API_URL}?action=reset_all&masterKey=${encodeURIComponent(masterKey)}`, {
+                    method: "GET",
+                    cache: "no-store"
                 });
 
                 const rawText = await response.text();

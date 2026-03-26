@@ -149,6 +149,24 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "GET") {
+            if (req.query?.action === "reset_all") {
+                const masterKey = req.query?.masterKey;
+
+                if (!RESET_MASTER_KEY) {
+                    return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
+                }
+
+                if (masterKey !== RESET_MASTER_KEY) {
+                    return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
+                }
+
+                const deletedItems = await deleteAllLeads();
+                return jsonResponse(res, 200, {
+                    ok: true,
+                    deletedCount: Array.isArray(deletedItems) ? deletedItems.length : 0
+                });
+            }
+
             if (req.query?.scope === "finalized" && req.query?.diagnostics === "1") {
                 const items = await listFinalizedDiagnostics();
                 return jsonResponse(res, 200, {
