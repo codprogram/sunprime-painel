@@ -12,7 +12,7 @@
     }
 
     h2 {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     #contador {
@@ -20,25 +20,29 @@
       color: #94a3b8;
     }
 
-    button {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 5px;
+    .container {
+      display: flex;
+      gap: 20px;
     }
 
-    .novo { background: #f59e0b; }
-    .atendimento { background: #3b82f6; }
-    .finalizado { background: #10b981; }
-
-    .card {
+    .coluna {
+      flex: 1;
       background: #1e293b;
       padding: 15px;
-      margin-bottom: 12px;
       border-radius: 10px;
+      min-height: 400px;
+    }
+
+    .coluna h3 {
+      margin-bottom: 15px;
+    }
+
+    .card {
+      background: #020617;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
       border-left: 6px solid #334155;
-      transition: all 0.2s ease;
     }
 
     .tempo {
@@ -46,21 +50,51 @@
       color: #94a3b8;
       margin-top: 5px;
     }
+
+    button {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    .novo { border-left: 6px solid #f59e0b; }
+    .atendimento { border-left: 6px solid #3b82f6; }
+    .finalizado { border-left: 6px solid #10b981; }
   </style>
 
 </head>
 <body>
 
-<h2>⚡ Sun Prime - Painel de Leads</h2>
+<h2>⚡ Sun Prime - Painel</h2>
 <h3 id="contador">Total: 0</h3>
 
 <button onclick="testeLead()">➕ Gerar Lead</button>
 
-<div id="lista"></div>
+<div class="container">
+
+  <div class="coluna">
+    <h3>🟡 Novos</h3>
+    <div id="novos"></div>
+  </div>
+
+  <div class="coluna">
+    <h3>🔵 Em Atendimento</h3>
+    <div id="atendimento"></div>
+  </div>
+
+  <div class="coluna">
+    <h3>🟢 Finalizados</h3>
+    <div id="finalizados"></div>
+  </div>
+
+</div>
 
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
-let dadosCache = [];
+let cache = [];
 
 // GERAR LEAD
 function testeLead() {
@@ -74,7 +108,7 @@ function testeLead() {
       status: "novo",
       criadoEm: new Date().toISOString()
     })
-  }).then(() => carregar());
+  }).then(carregar);
 }
 
 // ATUALIZAR STATUS
@@ -83,7 +117,7 @@ function atualizar(id, status) {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ id, status })
-  }).then(() => carregar());
+  }).then(carregar);
 }
 
 // TEMPO
@@ -92,60 +126,59 @@ function tempoDecorrido(data) {
   const criado = new Date(data);
   const diff = Math.floor((agora - criado) / 1000);
 
-  if (diff < 60) return diff + "s atrás";
-  if (diff < 3600) return Math.floor(diff/60) + " min atrás";
-  return Math.floor(diff/3600) + " h atrás";
+  if (diff < 60) return diff + "s";
+  if (diff < 3600) return Math.floor(diff/60) + " min";
+  return Math.floor(diff/3600) + " h";
 }
 
-// RENDERIZAR
+// LIMPAR COLUNAS
+function limparColunas() {
+  document.getElementById("novos").innerHTML = "";
+  document.getElementById("atendimento").innerHTML = "";
+  document.getElementById("finalizados").innerHTML = "";
+}
+
+// RENDER
 function renderizar(dados) {
-  const lista = document.getElementById("lista");
+  limparColunas();
 
   dados.forEach(d => {
 
-    let card = document.getElementById("lead-" + d.id);
+    const tempo = d.criadoEm ? tempoDecorrido(d.criadoEm) : "";
 
-    let cor = "#334155";
-    if (d.status === "novo") cor = "#f59e0b";
-    if (d.status === "em atendimento") cor = "#3b82f6";
-    if (d.status === "finalizado") cor = "#10b981";
+    const div = document.createElement("div");
+    div.className = "card";
 
-    const tempo = d.criadoEm ? tempoDecorrido(d.criadoEm) : "agora";
+    if (d.status === "novo") div.classList.add("novo");
+    if (d.status === "em atendimento") div.classList.add("atendimento");
+    if (d.status === "finalizado") div.classList.add("finalizado");
 
-    if (!card) {
-      card = document.createElement("div");
-      card.className = "card";
-      card.id = "lead-" + d.id;
+    div.innerHTML = `
+      <strong>👤 ${d.nome || "Cliente"}</strong><br>
+      📱 ${d.telefone || ""}<br>
+      📍 ${d.cidade || ""}<br>
+      <div class="tempo">⏱ ${tempo}</div>
 
-      card.innerHTML = `
-        <strong>👤 ${d.nome || "Cliente"}</strong><br>
-        📱 ${d.telefone || ""}<br>
-        📍 ${d.cidade || ""}<br>
-        📊 Status: ${d.status || "novo"}<br>
+      <button onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
+      <button onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
+    `;
 
-        <div class="tempo" id="tempo-${d.id}">⏱ ${tempo}</div><br>
-
-        <button class="atendimento" onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
-        <button class="finalizado" onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
-      `;
-
-      lista.prepend(card); // novos no topo
+    if (d.status === "novo") {
+      document.getElementById("novos").appendChild(div);
+    } else if (d.status === "em atendimento") {
+      document.getElementById("atendimento").appendChild(div);
+    } else {
+      document.getElementById("finalizados").appendChild(div);
     }
-
-    // atualizar visual
-    card.style.borderLeft = "6px solid " + cor;
-
-    const tempoEl = document.getElementById("tempo-" + d.id);
-    if (tempoEl) tempoEl.innerText = "⏱ " + tempo;
   });
 }
 
-// CARREGAR DADOS
+// CARREGAR
 function carregar() {
   fetch(API)
     .then(res => res.json())
     .then(dados => {
-      dadosCache = dados;
+      cache = dados;
 
       document.getElementById("contador").innerText =
         "Total de Leads: " + dados.length;
@@ -154,17 +187,19 @@ function carregar() {
     });
 }
 
-// ATUALIZA TEMPO SEM RECARREGAR API
+// ATUALIZA TEMPO
 setInterval(() => {
-  dadosCache.forEach(d => {
-    const tempoEl = document.getElementById("tempo-" + d.id);
-    if (tempoEl && d.criadoEm) {
-      tempoEl.innerText = "⏱ " + tempoDecorrido(d.criadoEm);
-    }
+  cache.forEach(d => {
+    const elementos = document.querySelectorAll(".tempo");
+    elementos.forEach(el => {
+      if (d.criadoEm) {
+        el.innerText = "⏱ " + tempoDecorrido(d.criadoEm);
+      }
+    });
   });
 }, 1000);
 
-// ATUALIZA API (mais leve agora)
+// ATUALIZA API
 setInterval(carregar, 5000);
 
 carregar();
