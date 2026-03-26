@@ -1,4 +1,5 @@
 const TABLE_NAME = process.env.SUPABASE_LEADS_TABLE || "leads";
+const RESET_MASTER_KEY = process.env.MASTER_RESET_KEY || process.env.RESETKEY || process.env.ADMIN_RESET_KEY;
 
 function jsonResponse(res, status, payload) {
     res.status(status).setHeader("Content-Type", "application/json");
@@ -146,11 +147,11 @@ export default async function handler(req, res) {
             const { id, scope, masterKey } = req.query || {};
 
             if (scope === "finalized") {
-                if (!process.env.MASTER_RESET_KEY) {
+                if (!RESET_MASTER_KEY) {
                     return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
                 }
 
-                if (masterKey !== process.env.MASTER_RESET_KEY) {
+                if (masterKey !== RESET_MASTER_KEY) {
                     return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
                 }
 

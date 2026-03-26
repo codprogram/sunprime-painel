@@ -19,6 +19,11 @@ No projeto da Vercel, adicione:
 - `SUPABASE_LEADS_TABLE`
 - `MASTER_RESET_KEY`
 
+Opcionalmente, se a Vercel implicar com esse nome no formulário, você pode usar:
+
+- `RESETKEY`
+- ou `ADMIN_RESET_KEY`
+
 Valor sugerido para `SUPABASE_LEADS_TABLE`:
 
 ```txt
