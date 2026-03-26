@@ -13,12 +13,45 @@
       padding: 20px;
     }
 
+    .topbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .coluna {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 12px;
+    }
+
     .card {
-      background: rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.05);
       padding: 15px;
       border-radius: 12px;
       margin-bottom: 10px;
       border-left: 4px solid;
+      backdrop-filter: blur(10px);
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
     }
 
     .novo { border-color: #f59e0b; }
@@ -31,6 +64,8 @@
       margin-top: 5px;
     }
 
+    .hidden { display: none; }
+
   </style>
 
 </head>
@@ -38,27 +73,44 @@
 
 <h2>⚡ Sun Prime SaaS</h2>
 
-<button onclick="testeLead()">+ Lead</button>
+<div class="topbar">
+  <button onclick="testeLead()">+ Lead</button>
+  <button onclick="trocarAba('pipeline')">Pipeline</button>
+  <button onclick="trocarAba('finalizados')">Finalizados</button>
+</div>
 
-<h3>🟡 Novos</h3>
-<div id="novo"></div>
+<div id="pipeline">
+  <div class="container">
+    <div class="coluna"><h3>🟡 Novos</h3><div id="novo"></div></div>
+    <div class="coluna"><h3>🔵 Atendimento</h3><div id="atendimento"></div></div>
+  </div>
+</div>
 
-<h3>🔵 Atendimento</h3>
-<div id="atendimento"></div>
-
-<h3>🟢 Finalizados</h3>
-<div id="finalizado"></div>
+<div id="finalizados" class="hidden">
+  <h3>🟢 Finalizados</h3>
+  <div id="finalizado"></div>
+</div>
 
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
 
-// FORMATA DATA
+let ids = new Set();
+
+// formatar data
 function formatar(data) {
+  if (!data) return "";
   const d = new Date(data);
   return d.toLocaleDateString() + " " + d.toLocaleTimeString();
 }
 
-// GERAR
+// trocar aba
+function trocarAba(aba) {
+  document.getElementById("pipeline").classList.add("hidden");
+  document.getElementById("finalizados").classList.add("hidden");
+  document.getElementById(aba).classList.remove("hidden");
+}
+
+// gerar
 function testeLead() {
   fetch(API, {
     method: "POST",
@@ -73,7 +125,7 @@ function testeLead() {
   });
 }
 
-// ATUALIZAR
+// atualizar
 function atualizar(id, status) {
 
   let payload = { id, status };
@@ -89,37 +141,57 @@ function atualizar(id, status) {
   });
 }
 
-// RENDER
+// render SEM apagar
 function render(dados) {
-
-  document.getElementById("novo").innerHTML = "";
-  document.getElementById("atendimento").innerHTML = "";
-  document.getElementById("finalizado").innerHTML = "";
 
   dados.forEach(d => {
 
-    const div = document.createElement("div");
-    div.className = "card " + d.status;
+    let card = document.getElementById("lead-" + d.id);
 
-    div.innerHTML = `
-      <strong>${d.nome}</strong><br>
-      ${d.telefone}<br>
-      ${d.cidade}
+    if (!card) {
+      card = document.createElement("div");
+      card.id = "lead-" + d.id;
+      card.className = "card";
 
-      <div class="tempo">
-        📅 Criado: ${formatar(d.criadoEm)}<br>
-        ${d.finalizadoEm ? "✅ Finalizado: " + formatar(d.finalizadoEm) : ""}
-      </div>
+      card.innerHTML = `
+        <strong>${d.nome}</strong><br>
+        ${d.telefone}<br>
+        ${d.cidade}
 
-      <button onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
-      <button onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
+        <div class="tempo" id="tempo-${d.id}"></div>
+
+        <div style="margin-top:10px">
+          <button onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
+          <button onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
+        </div>
+      `;
+    }
+
+    // classe
+    card.classList.remove("novo","atendimento","finalizado");
+    card.classList.add(d.status);
+
+    // mover
+    if (d.status === "novo")
+      document.getElementById("novo").prepend(card);
+
+    else if (d.status === "em atendimento")
+      document.getElementById("atendimento").prepend(card);
+
+    else
+      document.getElementById("finalizado").prepend(card);
+
+    // atualizar datas
+    const tempoEl = document.getElementById("tempo-" + d.id);
+
+    tempoEl.innerHTML = `
+      📅 ${formatar(d.criadoEm)}<br>
+      ${d.finalizadoEm ? "✅ " + formatar(d.finalizadoEm) : ""}
     `;
-
-    document.getElementById(d.status).appendChild(div);
   });
 }
 
-// LOOP
+// loop
 function carregar() {
   fetch(API).then(r=>r.json()).then(render);
 }
