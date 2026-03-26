@@ -6,201 +6,72 @@
 
 <title>Sun Prime CRM PRO</title>
 
+<script src="https://cdn.tailwindcss.com"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --bg:#0b1220;
-  --card:rgba(255,255,255,0.05);
-  --text:#e2e8f0;
-  --primary:#2563eb;
-}
-
-body.light{
-  --bg:#f1f5f9;
-  --card:#ffffff;
-  --text:#0f172a;
-}
-
-body{
-  font-family:'Inter';
-  background:var(--bg);
-  color:var(--text);
-  padding:20px;
-}
-
-.page{max-width:1400px;margin:auto;}
-
-.topbar{
-  display:flex;
-  gap:10px;
-  margin-bottom:20px;
-  flex-wrap:wrap;
-}
-
-button{
-  background:var(--primary);
-  border:none;
-  padding:8px 12px;
-  border-radius:8px;
-  color:white;
-  cursor:pointer;
-}
-
-.card{
-  background:var(--card);
-  border-radius:16px;
-  padding:16px;
-  backdrop-filter:blur(10px);
-  box-shadow:0 10px 30px rgba(0,0,0,0.2);
-}
-
-/* DASHBOARD */
-.summary-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-  margin-bottom:20px;
-}
-
-.summary-card span{
-  font-size:12px;
-  opacity:.7;
-}
-
-.summary-card strong{
-  font-size:22px;
-}
-
-/* PIPELINE */
-.layout{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-}
-
-.panel h2{
-  margin-bottom:10px;
-}
-
-/* CARD */
-.lead-card{
-  background:rgba(255,255,255,0.03);
-  border-radius:12px;
-  padding:12px;
-  margin-bottom:10px;
-  border-left:5px solid;
-  transition:0.2s;
-}
-
-.lead-card:hover{
-  transform:translateY(-2px);
-}
-
-/* HEADER */
-.card-header{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:8px;
-}
-
-.badge{
-  font-size:11px;
-  opacity:.6;
-}
-
-/* BODY */
-.card-body{
-  font-size:13px;
-  margin-bottom:8px;
-}
-
-/* METRICS */
-.card-metrics{
-  font-size:12px;
-  opacity:.7;
-}
-
-/* ACTIONS */
-.card-actions{
-  margin-top:8px;
-}
-
-.card-actions button{
-  margin-right:5px;
-  padding:5px 8px;
-  font-size:12px;
-}
-
-/* MOBILE */
-@media(max-width:900px){
-  .layout{grid-template-columns:1fr;}
-}
+body { font-family: 'Inter', sans-serif; }
 </style>
+
 </head>
 
-<body>
+<body class="bg-slate-900 text-white">
 
-<div class="page">
+<div class="max-w-7xl mx-auto p-5">
 
-<h2>⚡ Sun Prime CRM PRO</h2>
+<h1 class="text-2xl font-semibold mb-4">⚡ Sun Prime CRM</h1>
 
-<div class="topbar">
-  <button onclick="testeLead()">+ Lead</button>
-  <button onclick="toggleTema()">🌙 Tema</button>
-  <button onclick="toggleSom()">🔊 Som</button>
-  <button onclick="trocarAba('pipeline')">Pipeline</button>
-  <button onclick="trocarAba('finalizados')">Finalizados</button>
+<!-- TOPBAR -->
+<div class="flex flex-wrap gap-2 mb-6">
+  <button onclick="testeLead()" class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500">+ Lead</button>
+  <button onclick="toggleTema()" class="bg-gray-700 px-4 py-2 rounded-lg">Tema</button>
+  <button onclick="toggleSom()" class="bg-gray-700 px-4 py-2 rounded-lg">Som</button>
 </div>
 
 <!-- DASHBOARD -->
-<div class="summary-grid">
-  <div class="summary-card card">
-    <span>Total Leads</span>
-    <strong id="total"></strong>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="bg-slate-800 p-4 rounded-xl">
+    <p class="text-sm opacity-70">Total Leads</p>
+    <h2 id="total" class="text-2xl font-bold">0</h2>
   </div>
-  <div class="summary-card card">
-    <span>Em Atendimento</span>
-    <strong id="att"></strong>
+
+  <div class="bg-slate-800 p-4 rounded-xl">
+    <p class="text-sm opacity-70">Em Atendimento</p>
+    <h2 id="att" class="text-2xl font-bold">0</h2>
   </div>
-  <div class="summary-card card">
-    <span>Finalizados</span>
-    <strong id="fin"></strong>
+
+  <div class="bg-slate-800 p-4 rounded-xl">
+    <p class="text-sm opacity-70">Finalizados</p>
+    <h2 id="fin" class="text-2xl font-bold">0</h2>
   </div>
 </div>
 
 <!-- PIPELINE -->
-<div id="pipeline">
+<div class="grid md:grid-cols-3 gap-4">
 
-<div class="layout">
-
-<div class="card panel">
-<h2>🟡 Novos</h2>
+<div class="bg-slate-800 p-4 rounded-xl">
+<h2 class="mb-3">🟡 Novos</h2>
 <div id="novo"></div>
 </div>
 
-<div class="card panel">
-<h2>🔵 Atendimento</h2>
+<div class="bg-slate-800 p-4 rounded-xl">
+<h2 class="mb-3">🔵 Atendimento</h2>
 <div id="atendimento"></div>
 </div>
 
+<div class="bg-slate-800 p-4 rounded-xl">
+<h2 class="mb-3">🟢 Finalizados</h2>
+<div id="finalizado"></div>
 </div>
 
 </div>
 
-<!-- FINALIZADOS -->
-<div id="finalizados" style="display:none">
-  <div class="card panel">
-    <h2>🟢 Finalizados</h2>
-    <div id="finalizado"></div>
-  </div>
 </div>
 
 <audio id="som">
   <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
 </audio>
-
-</div>
 
 <script>
 const API="https://sunprime-painel.vercel.app/api/pedidos";
@@ -208,29 +79,20 @@ const API="https://sunprime-painel.vercel.app/api/pedidos";
 let somAtivo=true;
 let ids=new Set();
 
-// tema
 function toggleTema(){
- document.body.classList.toggle("light");
+ document.body.classList.toggle("bg-white");
+ document.body.classList.toggle("text-black");
 }
 
-// som
 function toggleSom(){
  somAtivo=!somAtivo;
  alert(somAtivo?"Som ON":"Som OFF");
 }
 
-// abas
-function trocarAba(aba){
- document.getElementById("pipeline").style.display="none";
- document.getElementById("finalizados").style.display="none";
- document.getElementById(aba).style.display="block";
-}
-
-// SLA
 function corTempo(s){
- if(s<60)return "#10b981";
- if(s<300)return "#f59e0b";
- return "#ef4444";
+ if(s<60)return "border-green-500";
+ if(s<300)return "border-yellow-400";
+ return "border-red-500";
 }
 
 function tempo(data){
@@ -240,7 +102,6 @@ function tempo(data){
  return Math.floor(s/3600)+"h";
 }
 
-// lead fake
 function testeLead(){
  fetch(API,{
   method:"POST",
@@ -255,7 +116,6 @@ function testeLead(){
  });
 }
 
-// atualizar
 function atualizar(id,status){
  fetch(API,{
   method:"PUT",
@@ -264,7 +124,6 @@ function atualizar(id,status){
  });
 }
 
-// render
 function render(dados){
 
  novo.innerHTML="";
@@ -285,30 +144,29 @@ function render(dados){
   if(d.status==="em atendimento")att++;
   if(d.status==="finalizado")fin++;
 
-  let card=document.createElement("div");
-  card.className="lead-card";
-
   let s=(Date.now()-new Date(d.criadoEm))/1000;
-  card.style.borderLeftColor=corTempo(s);
+
+  let card=document.createElement("div");
+  card.className=`bg-slate-700 p-3 rounded-lg mb-3 border-l-4 ${corTempo(s)} hover:scale-[1.02] transition`;
 
   card.innerHTML=`
-    <div class="card-header">
+    <div class="flex justify-between mb-1">
       <strong>${d.nome}</strong>
-      <span class="badge">${d.status}</span>
+      <span class="text-xs opacity-70">${d.status}</span>
     </div>
 
-    <div class="card-body">
+    <div class="text-sm opacity-80">
       📞 ${d.telefone}<br>
       📍 ${d.cidade}
     </div>
 
-    <div class="card-metrics">
+    <div class="text-xs mt-1 opacity-60">
       ⏱ ${tempo(d.criadoEm)}
     </div>
 
-    <div class="card-actions">
-      <button onclick="atualizar(${d.id},'em atendimento')">Atender</button>
-      <button onclick="atualizar(${d.id},'finalizado')">Finalizar</button>
+    <div class="mt-2 flex gap-1">
+      <button onclick="atualizar(${d.id},'em atendimento')" class="bg-blue-600 px-2 py-1 rounded text-xs">Atender</button>
+      <button onclick="atualizar(${d.id},'finalizado')" class="bg-green-600 px-2 py-1 rounded text-xs">Finalizar</button>
     </div>
   `;
 
@@ -318,16 +176,11 @@ function render(dados){
 
  });
 
- totalEl.innerText=total;
- attEl.innerText=att;
- finEl.innerText=fin;
+ document.getElementById("total").innerText=total;
+ document.getElementById("att").innerText=att;
+ document.getElementById("fin").innerText=fin;
 }
 
-const totalEl=document.getElementById("total");
-const attEl=document.getElementById("att");
-const finEl=document.getElementById("fin");
-
-// loop
 function carregar(){
  fetch(API).then(r=>r.json()).then(render);
 }
