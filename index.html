@@ -7,22 +7,17 @@
 <title>Sun Prime CRM PRO</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 body { font-family: 'Inter', sans-serif; }
 
-.dragging {
-  opacity: 0.5;
-  transform: rotate(2deg) scale(1.02);
-}
-
-.coluna.drag-over {
-  background: rgba(255,255,255,0.05);
+.sortable-ghost {
+  opacity: 0.4;
 }
 </style>
-
 </head>
 
 <body class="bg-slate-900 text-white">
@@ -54,19 +49,19 @@ body { font-family: 'Inter', sans-serif; }
 <!-- PIPELINE -->
 <div class="grid md:grid-cols-3 gap-4">
 
-<div class="coluna bg-slate-800 p-4 rounded-xl" data-status="novo">
+<div class="bg-slate-800 p-4 rounded-xl">
 <h2>🟡 Novos</h2>
-<div id="novo"></div>
+<div id="novo" class="min-h-[200px]"></div>
 </div>
 
-<div class="coluna bg-slate-800 p-4 rounded-xl" data-status="em atendimento">
+<div class="bg-slate-800 p-4 rounded-xl">
 <h2>🔵 Atendimento</h2>
-<div id="atendimento"></div>
+<div id="atendimento" class="min-h-[200px]"></div>
 </div>
 
-<div class="coluna bg-slate-800 p-4 rounded-xl" data-status="finalizado">
+<div class="bg-slate-800 p-4 rounded-xl">
 <h2>🟢 Finalizados</h2>
-<div id="finalizado"></div>
+<div id="finalizado" class="min-h-[200px]"></div>
 </div>
 
 </div>
@@ -82,7 +77,6 @@ const API="https://sunprime-painel.vercel.app/api/pedidos";
 
 let ids=new Set();
 const elementos={};
-let dragged=null;
 
 // tempo
 function tempo(data){
@@ -114,7 +108,7 @@ function testeLead(){
  });
 }
 
-// atualizar
+// atualizar backend
 function atualizar(id,status){
  fetch(API,{
   method:"PUT",
@@ -123,43 +117,30 @@ function atualizar(id,status){
  });
 }
 
-// DRAG
-function setupDrag(card,id){
- card.draggable=true;
+// SORTABLE
+function iniciarDrag(){
 
- card.addEventListener("dragstart",()=>{
-   dragged={id,card};
-   card.classList.add("dragging");
+ new Sortable(novo,{
+  group:"leads",
+  animation:200,
+  onAdd: evt => atualizar(evt.item.dataset.id,"novo")
  });
 
- card.addEventListener("dragend",()=>{
-   card.classList.remove("dragging");
+ new Sortable(atendimento,{
+  group:"leads",
+  animation:200,
+  onAdd: evt => atualizar(evt.item.dataset.id,"em atendimento")
  });
+
+ new Sortable(finalizado,{
+  group:"leads",
+  animation:200,
+  onAdd: evt => atualizar(evt.item.dataset.id,"finalizado")
+ });
+
 }
 
-// DROP
-document.querySelectorAll(".coluna").forEach(col=>{
- col.addEventListener("dragover",e=>{
-   e.preventDefault();
-   col.classList.add("drag-over");
- });
-
- col.addEventListener("dragleave",()=>{
-   col.classList.remove("drag-over");
- });
-
- col.addEventListener("drop",()=>{
-   col.classList.remove("drag-over");
-
-   if(dragged){
-     const status=col.dataset.status;
-     atualizar(dragged.id,status);
-     col.querySelector("div").prepend(dragged.card);
-   }
- });
-});
-
-// render
+// render sem piscar
 function render(dados){
 
  let total=dados.length;
@@ -180,8 +161,8 @@ function render(dados){
 
   if(!card){
     card=document.createElement("div");
+    card.dataset.id=d.id;
     elementos[d.id]=card;
-    setupDrag(card,d.id);
   }
 
   let s=(Date.now()-new Date(d.criadoEm))/1000;
@@ -222,6 +203,7 @@ function carregar(){
 
 setInterval(carregar,3000);
 carregar();
+iniciarDrag();
 </script>
 
 </body>
