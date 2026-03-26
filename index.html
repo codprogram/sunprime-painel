@@ -1,264 +1,262 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Sun Prime CRM</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sun Prime CRM V2</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
-  <style>
-    :root {
-      --bg:#0b1220;
-      --card:rgba(255,255,255,0.05);
-      --text:#e2e8f0;
-    }
+<style>
+:root{
+  --bg:#0b1220;
+  --card:rgba(255,255,255,0.05);
+  --text:#e2e8f0;
+  --primary:#2563eb;
+}
 
-    body.light {
-      --bg:#f1f5f9;
-      --card:rgba(0,0,0,0.05);
-      --text:#0f172a;
-    }
+body{
+  font-family:'Inter';
+  background:var(--bg);
+  color:var(--text);
+  padding:20px;
+}
 
-    body {
-      font-family:'Inter',sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      padding:20px;
-    }
+.page{max-width:1400px;margin:auto;}
 
-    .topbar { display:flex; gap:10px; margin-bottom:20px; }
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:15px;
+  backdrop-filter:blur(10px);
+}
 
-    button {
-      background:#2563eb;
-      color:white;
-      border:none;
-      padding:8px 12px;
-      border-radius:8px;
-      cursor:pointer;
-    }
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  margin-bottom:20px;
+}
 
-    .container { display:flex; gap:20px; }
+.summary-card strong{
+  font-size:22px;
+}
 
-    .coluna {
-      flex:1;
-      background:var(--card);
-      padding:15px;
-      border-radius:12px;
-    }
+.layout{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
 
-    .card {
-      background:rgba(255,255,255,0.03);
-      padding:15px;
-      border-radius:12px;
-      margin-bottom:10px;
-      border-left:4px solid;
-      backdrop-filter:blur(10px);
-      transition:0.2s;
-    }
+.panel h2{margin-bottom:10px;}
 
-    .card:hover { transform:scale(1.02); }
+.lead-card{
+  background:rgba(255,255,255,0.03);
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+  border-left:5px solid;
+}
 
-    .novo { border-color:#f59e0b; }
-    .atendimento { border-color:#3b82f6; }
-    .finalizado { border-color:#10b981; }
+.card-header{
+  display:flex;
+  justify-content:space-between;
+}
 
-    .tempo { font-size:12px; opacity:0.7; margin-top:5px; }
+.badge{
+  font-size:12px;
+  opacity:.7;
+}
 
-    .hidden { display:none; }
+.card-actions button{
+  margin-top:8px;
+  margin-right:5px;
+  padding:5px 8px;
+  border:none;
+  border-radius:6px;
+  background:var(--primary);
+  color:white;
+  cursor:pointer;
+}
 
-  </style>
+.topbar{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+button{
+  background:var(--primary);
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+}
+</style>
 </head>
 
 <body>
+
+<div class="page">
 
 <h2>⚡ Sun Prime CRM</h2>
 
 <div class="topbar">
   <button onclick="testeLead()">+ Lead</button>
-  <button onclick="toggleTema()">🌙 Tema</button>
-  <button onclick="toggleSom()">🔇 Som</button>
-  <button onclick="trocarAba('pipeline')">Pipeline</button>
-  <button onclick="trocarAba('finalizados')">Finalizados</button>
 </div>
 
-<div id="pipeline">
-  <div class="container">
-    <div class="coluna"><h3>🟡 Novos</h3><div id="novo"></div></div>
-    <div class="coluna"><h3>🔵 Atendimento</h3><div id="atendimento"></div></div>
-  </div>
+<!-- DASHBOARD -->
+<div class="summary-grid">
+  <div class="summary-card card">Leads<br><strong id="total"></strong></div>
+  <div class="summary-card card">Atendimento<br><strong id="att"></strong></div>
+  <div class="summary-card card">Finalizados<br><strong id="fin"></strong></div>
 </div>
 
-<div id="finalizados" class="hidden">
-  <h3>🟢 Finalizados</h3>
-  <div id="finalizado"></div>
+<!-- PIPELINE -->
+<div class="layout">
+
+<div class="card panel">
+<h2>🟡 Novos</h2>
+<div id="novo"></div>
 </div>
 
-<audio id="som">
-  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
-</audio>
+<div class="card panel">
+<h2>🔵 Atendimento</h2>
+<div id="atendimento"></div>
+</div>
+
+<div class="card panel">
+<h2>🟢 Finalizados</h2>
+<div id="finalizado"></div>
+</div>
+
+</div>
+
+</div>
 
 <script>
-const API = "https://sunprime-painel.vercel.app/api/pedidos";
+const API="https://sunprime-painel.vercel.app/api/pedidos";
 
-let somAtivo = true;
-let cache = {};
-let ids = new Set();
+let cache={};
+let ids=new Set();
 
-// ===== TEMA =====
-function toggleTema() {
-  document.body.classList.toggle("light");
+Notification.requestPermission();
+
+// SLA cor
+function corTempo(seg){
+  if(seg<60)return "#10b981";
+  if(seg<300)return "#f59e0b";
+  return "#ef4444";
 }
 
-// ===== SOM =====
-function toggleSom() {
-  somAtivo = !somAtivo;
-  alert(somAtivo ? "Som ON" : "Som OFF");
+function tempo(data){
+  const s=(Date.now()-new Date(data))/1000;
+  if(s<60)return Math.floor(s)+"s";
+  if(s<3600)return Math.floor(s/60)+"m";
+  return Math.floor(s/3600)+"h";
 }
 
-// ===== ABA =====
-function trocarAba(aba) {
-  document.getElementById("pipeline").classList.add("hidden");
-  document.getElementById("finalizados").classList.add("hidden");
-  document.getElementById(aba).classList.remove("hidden");
+// criar lead teste
+function testeLead(){
+ fetch(API,{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    nome:"Cliente",
+    telefone:"81999999999",
+    cidade:"Recife",
+    status:"novo",
+    criadoEm:new Date().toISOString()
+  })
+ });
 }
 
-// ===== FORMATAR DATA =====
-function formatar(data) {
-  if (!data) return "";
-  const d = new Date(data);
-  return d.toLocaleDateString()+" "+d.toLocaleTimeString();
+// assumir lead
+function assumir(id){
+ atualizar(id,"em atendimento");
 }
 
-// ===== TEMPO =====
-function tempo(data) {
-  const diff = Math.floor((Date.now() - new Date(data)) / 1000);
-  if (diff < 60) return diff+"s";
-  if (diff < 3600) return Math.floor(diff/60)+"m";
-  return Math.floor(diff/3600)+"h";
-}
-
-// ===== GERAR =====
-function testeLead() {
-  fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      nome:"Cliente",
-      telefone:"81999999999",
-      cidade:"Recife",
-      status:"novo",
-      criadoEm:new Date().toISOString()
-    })
-  });
-}
-
-// ===== ATUALIZAR (CORRIGIDO) =====
+// atualizar
 function atualizar(id,status){
-
-  // 🔥 MOVE IMEDIATO (UX)
-  const card = document.getElementById("lead-"+id);
-
-  if(card){
-    const destino =
-      status === "novo" ? "novo" :
-      status === "em atendimento" ? "atendimento" : "finalizado";
-
-    document.getElementById(destino).prepend(card);
-  }
-
-  let payload={id,status};
-
-  if(status==="finalizado"){
-    payload.finalizadoEm=new Date().toISOString();
-  }
-
-  fetch(API,{
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(payload)
-  });
+ fetch(API,{
+  method:"PUT",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id,status})
+ });
 }
 
-// ===== RENDER =====
+// render
 function render(dados){
 
-  dados.forEach(d=>{
+ document.getElementById("novo").innerHTML="";
+ document.getElementById("atendimento").innerHTML="";
+ document.getElementById("finalizado").innerHTML="";
 
-    cache[d.id]=d;
+ let total=dados.length;
+ let att=0;
+ let fin=0;
 
-    let card=document.getElementById("lead-"+d.id);
+ dados.forEach(d=>{
 
-    // som novo lead
-    if(!ids.has(d.id)){
-      ids.add(d.id);
-      if(somAtivo) document.getElementById("som").play();
+  cache[d.id]=d;
+
+  if(!ids.has(d.id)){
+    ids.add(d.id);
+    if(Notification.permission==="granted"){
+      new Notification("Novo Lead",{body:d.nome});
     }
+  }
 
-    if(!card){
-      card=document.createElement("div");
-      card.id="lead-"+d.id;
-      card.className="card";
+  if(d.status==="em atendimento")att++;
+  if(d.status==="finalizado")fin++;
 
-      card.innerHTML=`
-        <strong>${d.nome}</strong><br>
-        ${d.telefone}<br>
-        ${d.cidade}
+  let card=document.createElement("div");
+  card.className="lead-card";
 
-        <div class="tempo" id="tempo-${d.id}"></div>
+  let segundos=(Date.now()-new Date(d.criadoEm))/1000;
+  card.style.borderLeftColor=corTempo(segundos);
 
-        <div style="margin-top:10px">
-          <button onclick="atualizar(${d.id},'em atendimento')">Atender</button>
-          <button onclick="atualizar(${d.id},'finalizado')">Finalizar</button>
-        </div>
-      `;
-    }
+  card.innerHTML=`
+    <div class="card-header">
+      <strong>${d.nome}</strong>
+      <span class="badge">${d.status}</span>
+    </div>
 
-    // classes
-    card.classList.remove("novo","atendimento","finalizado");
-    card.classList.add(d.status);
+    <div>📞 ${d.telefone}</div>
+    <div>📍 ${d.cidade}</div>
+    <div>👤 ${d.responsavel || "Livre"}</div>
 
-    // mover correto
-    if(d.status==="novo")
-      document.getElementById("novo").prepend(card);
+    <div>⏱ ${tempo(d.criadoEm)}</div>
 
-    else if(d.status==="em atendimento")
-      document.getElementById("atendimento").prepend(card);
+    <div class="card-actions">
+      <button onclick="assumir(${d.id})">Atender</button>
+      <button onclick="atualizar(${d.id},'finalizado')">Finalizar</button>
+    </div>
+  `;
 
-    else
-      document.getElementById("finalizado").prepend(card);
+  if(d.status==="novo")novo.appendChild(card);
+  else if(d.status==="em atendimento")atendimento.appendChild(card);
+  else finalizado.appendChild(card);
 
-    // atualizar tempo + datas
-    const el=document.getElementById("tempo-"+d.id);
+ });
 
-    el.innerHTML=`
-      ⏱ ${tempo(d.criadoEm)}<br>
-      📅 ${formatar(d.criadoEm)}<br>
-      ${d.finalizadoEm ? "✅ "+formatar(d.finalizadoEm) : ""}
-    `;
-  });
+ document.getElementById("total").innerText=total;
+ document.getElementById("att").innerText=att;
+ document.getElementById("fin").innerText=fin;
 }
 
-// ===== LOOP =====
+// loop
 function carregar(){
-  fetch(API).then(r=>r.json()).then(render);
+ fetch(API).then(r=>r.json()).then(render);
 }
-
-// tempo em tempo real
-setInterval(()=>{
-  Object.values(cache).forEach(d=>{
-    const el=document.getElementById("tempo-"+d.id);
-    if(el){
-      el.innerHTML=`
-        ⏱ ${tempo(d.criadoEm)}<br>
-        📅 ${formatar(d.criadoEm)}<br>
-        ${d.finalizadoEm ? "✅ "+formatar(d.finalizadoEm) : ""}
-      `;
-    }
-  });
-},1000);
 
 setInterval(carregar,3000);
 carregar();
-
 </script>
 
 </body>
