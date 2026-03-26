@@ -714,6 +714,29 @@
             color: var(--muted);
         }
 
+        .system-empty {
+            min-height: 300px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            padding: 28px;
+            border-radius: 26px;
+            border: 1px dashed var(--line);
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .system-empty h3 {
+            font-size: 24px;
+            letter-spacing: -0.03em;
+        }
+
+        .system-empty p {
+            margin-top: 10px;
+            max-width: 46ch;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
         @media (max-width: 1380px) {
             .workspace {
                 grid-template-columns: minmax(0, 1.7fr) minmax(300px, 330px);
@@ -899,7 +922,7 @@
                 </div>
                 <div class="hero-tags">
                     <span class="tag green">Fluxo comercial mapeado</span>
-                    <span class="tag orange">Mock pronto para integrar</span>
+                    <span class="tag orange">Base compartilhada ativa</span>
                 </div>
             </article>
 
@@ -1021,59 +1044,6 @@
 
         const owners = ["Sem dono", "Marcos", "Comercial 1", "Comercial 2", "Especialista"];
 
-        const fallbackLeads = [
-            {
-                id: "lead-001",
-                nome: "Lead Residencial Recife",
-                telefone: "5581993020011",
-                telefoneContato: "(81) 99302-0011",
-                cidade: "Recife - PE",
-                contaLuz: "R$ 420",
-                tipoImovel: "Residencia",
-                motivo: "Solicitou orcamento de energia solar",
-                botEstado: "ORCAMENTO_AGUARDANDO_TIPO_IMOVEL",
-                prioridade: "hot",
-                origem: ["whatsapp", "csv", "sheets"],
-                criadoEm: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-                ultimoEventoEm: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-                resumo: "Cliente preencheu quase todo o fluxo de orcamento. Falta confirmar tipo de imovel.",
-                timeline: [
-                    "Entrou pelo menu e escolheu simulacao.",
-                    "Informou nome, cidade e conta media.",
-                    "Aguardando ultimo dado para fechar qualificacao."
-                ],
-                owner: "Marcos",
-                note: "Retornar ainda hoje.",
-                sourceStatus: "Ativo",
-                stage: "budget"
-            },
-            {
-                id: "lead-002",
-                nome: "Lead Tecnico Jaboatao",
-                telefone: "5581998112200",
-                telefoneContato: "(81) 99811-2200",
-                cidade: "Jaboatao - PE",
-                contaLuz: "Nao informado",
-                tipoImovel: "Nao informado",
-                motivo: "Duvida tecnica sobre energia solar",
-                botEstado: "ESPECIALISTA_AGUARDANDO_TELEFONE",
-                prioridade: "hot",
-                origem: ["whatsapp"],
-                criadoEm: new Date(Date.now() - 52 * 60 * 1000).toISOString(),
-                ultimoEventoEm: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
-                resumo: "Lead precisa de atendimento humano para esclarecer manutencao e dimensionamento.",
-                timeline: [
-                    "Pediu atendimento com especialista.",
-                    "Selecionou motivo tecnico.",
-                    "Aguardando retorno humano."
-                ],
-                owner: "Especialista",
-                note: "Confirmar telefone alternativo.",
-                sourceStatus: "Fila humana",
-                stage: "specialist"
-            }
-        ];
-
         const state = {
             leads: [],
             selectedLeadId: null,
@@ -1087,7 +1057,7 @@
             },
             lastUpdatedAt: new Date(),
             syncTimer: null,
-            isFallbackMode: false
+            hasConnectionError: false
         };
 
         function readUISettings() {
@@ -1167,10 +1137,10 @@
                 }
 
                 state.leads = (data.items || []).map(normalizeLead);
-                state.isFallbackMode = false;
+                state.hasConnectionError = false;
             } catch (_) {
-                state.leads = fallbackLeads.map(normalizeLead);
-                state.isFallbackMode = true;
+                state.leads = [];
+                state.hasConnectionError = true;
             }
 
             if (!state.selectedLeadId && state.leads.length) {
@@ -1313,6 +1283,20 @@
         }
 
         function renderBoard(leads) {
+            if (!leads.length) {
+                document.getElementById("boardContent").innerHTML = `
+                    <div class="system-empty">
+                        <div>
+                            <h3>${state.hasConnectionError ? "Base indisponivel no momento" : "Nenhum lead cadastrado ainda"}</h3>
+                            <p>${state.hasConnectionError
+                                ? "A API nao retornou dados. Verifique a conexao com a Vercel e o Supabase, depois atualize a base."
+                                : "Assim que os primeiros leads entrarem no painel, eles aparecerao aqui para distribuicao e acompanhamento do time."}</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
             document.getElementById("boardContent").innerHTML = state.viewMode === "kanban" ? renderKanban(leads) : renderList(leads);
 
             document.querySelectorAll("[data-lead-id]").forEach((element) => {
@@ -1542,8 +1526,8 @@
             document.getElementById("doneCount").textContent = leads.filter((lead) => lead.stage === "done").length;
             document.getElementById("billCount").textContent = leads.filter((lead) => lead.contaLuz !== "Nao informado").length;
             document.getElementById("boardSummary").textContent = `${leads.length} leads visiveis`;
-            document.getElementById("lastUpdatedLabel").textContent = state.isFallbackMode
-                ? "Modo local temporario: configure Supabase"
+            document.getElementById("lastUpdatedLabel").textContent = state.hasConnectionError
+                ? "Falha de sincronizacao com a base"
                 : `Atualizado ${relativeTime(state.lastUpdatedAt.toISOString())}`;
         }
 
