@@ -744,6 +744,40 @@
             line-height: 1.6;
         }
 
+        .toast {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 50;
+            max-width: min(420px, calc(100vw - 24px));
+            padding: 14px 16px;
+            border-radius: 18px;
+            color: white;
+            background: rgba(26, 35, 39, 0.94);
+            box-shadow: 0 20px 34px rgba(20, 26, 29, 0.22);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: rgba(30, 141, 91, 0.96);
+        }
+
+        .toast.error {
+            background: rgba(201, 82, 72, 0.96);
+        }
+
+        .toast.info {
+            background: rgba(47, 111, 214, 0.96);
+        }
+
         .system-status {
             margin-top: 8px;
             font-size: 12px;
@@ -1046,6 +1080,8 @@
         </div>
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script>
         const API_URL = "/api/pedidos";
         const UI_STORAGE_KEY = "sunprime-panel-ui";
@@ -1077,7 +1113,8 @@
             lastUpdatedAt: new Date(),
             syncTimer: null,
             hasConnectionError: false,
-            knownLeadIds: new Set()
+            knownLeadIds: new Set(),
+            toastTimer: null
         };
 
         function readUISettings() {
@@ -1146,6 +1183,20 @@
             }
 
             return data;
+        }
+
+        function showToast(message, tone = "info") {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.className = `toast ${tone} show`;
+
+            if (state.toastTimer) {
+                clearTimeout(state.toastTimer);
+            }
+
+            state.toastTimer = window.setTimeout(() => {
+                toast.className = "toast";
+            }, 3200);
         }
 
         async function loadLeads({ silent = false } = {}) {
@@ -1564,7 +1615,7 @@
             const data = await response.json();
 
             if (!response.ok || !data.ok) {
-                window.alert(data.error || "Nao foi possivel apagar o lead.");
+                showToast(data.error || "Nao foi possivel apagar o lead.", "error");
                 return;
             }
 
@@ -1572,11 +1623,14 @@
             state.selectedLeadId = state.leads[0]?.id || null;
             state.lastUpdatedAt = new Date();
             render();
+            showToast("Lead apagado com sucesso.", "success");
         }
 
         async function resetFinalizedLeads() {
             const masterKey = window.prompt("Digite a chave mestre para apagar todos os leads finalizados.");
             if (!masterKey) return;
+
+            showToast("Chave recebida. Validando e apagando finalizados...", "info");
 
             const response = await fetch(`${API_URL}?scope=finalized&masterKey=${encodeURIComponent(masterKey)}`, {
                 method: "DELETE"
@@ -1584,14 +1638,14 @@
             const data = await response.json();
 
             if (!response.ok || !data.ok) {
-                window.alert(data.error || "Nao foi possivel resetar os finalizados.");
+                showToast(data.error || "Nao foi possivel resetar os finalizados.", "error");
                 return;
             }
 
-            state.leads = state.leads.filter((lead) => lead.stage !== "done");
+            await loadLeads({ silent: true });
             state.selectedLeadId = state.leads[0]?.id || null;
-            state.lastUpdatedAt = new Date();
             render();
+            showToast(`Reset concluido. ${data.deletedCount || 0} finalizado(s) apagado(s).`, "success");
         }
 
         function notifyForNewLeads(incomingLeads) {

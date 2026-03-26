@@ -95,7 +95,7 @@ async function deleteLead(id) {
 }
 
 async function deleteFinalizedLeads() {
-    return supabaseFetch("?stage=eq.done", {
+    return supabaseFetch("?stage=eq.done&select=id,stage", {
         method: "DELETE"
     });
 }
@@ -155,8 +155,11 @@ export default async function handler(req, res) {
                     return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
                 }
 
-                await deleteFinalizedLeads();
-                return jsonResponse(res, 200, { ok: true });
+                const deletedItems = await deleteFinalizedLeads();
+                return jsonResponse(res, 200, {
+                    ok: true,
+                    deletedCount: Array.isArray(deletedItems) ? deletedItems.length : 0
+                });
             }
 
             if (!id) {
