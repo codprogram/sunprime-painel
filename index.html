@@ -12,34 +12,39 @@
 
 <style>
 body { font-family: 'Inter', sans-serif; }
+
+.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg) scale(1.02);
+}
+
+.coluna.drag-over {
+  background: rgba(255,255,255,0.05);
+}
 </style>
+
 </head>
 
 <body class="bg-slate-900 text-white">
 
 <div class="max-w-7xl mx-auto p-5">
 
-<h1 class="text-2xl font-semibold mb-4">⚡ Sun Prime CRM</h1>
+<h1 class="text-2xl font-semibold mb-4">⚡ Sun Prime CRM PRO</h1>
 
-<!-- TOPBAR -->
-<div class="flex flex-wrap gap-2 mb-6">
-  <button onclick="testeLead()" class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500">+ Lead</button>
-  <button onclick="toggleTema()" class="bg-gray-700 px-4 py-2 rounded-lg">Tema</button>
-  <button onclick="toggleSom()" class="bg-gray-700 px-4 py-2 rounded-lg">Som</button>
+<div class="flex gap-2 mb-6">
+  <button onclick="testeLead()" class="bg-blue-600 px-4 py-2 rounded-lg">+ Lead</button>
 </div>
 
 <!-- DASHBOARD -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<div class="grid md:grid-cols-3 gap-4 mb-6">
   <div class="bg-slate-800 p-4 rounded-xl">
-    <p class="text-sm opacity-70">Total Leads</p>
+    <p class="text-sm opacity-70">Total</p>
     <h2 id="total" class="text-2xl font-bold">0</h2>
   </div>
-
   <div class="bg-slate-800 p-4 rounded-xl">
-    <p class="text-sm opacity-70">Em Atendimento</p>
+    <p class="text-sm opacity-70">Atendimento</p>
     <h2 id="att" class="text-2xl font-bold">0</h2>
   </div>
-
   <div class="bg-slate-800 p-4 rounded-xl">
     <p class="text-sm opacity-70">Finalizados</p>
     <h2 id="fin" class="text-2xl font-bold">0</h2>
@@ -49,18 +54,18 @@ body { font-family: 'Inter', sans-serif; }
 <!-- PIPELINE -->
 <div class="grid md:grid-cols-3 gap-4">
 
-<div class="bg-slate-800 p-4 rounded-xl">
-<h2 class="mb-3">🟡 Novos</h2>
+<div class="coluna bg-slate-800 p-4 rounded-xl" data-status="novo">
+<h2>🟡 Novos</h2>
 <div id="novo"></div>
 </div>
 
-<div class="bg-slate-800 p-4 rounded-xl">
-<h2 class="mb-3">🔵 Atendimento</h2>
+<div class="coluna bg-slate-800 p-4 rounded-xl" data-status="em atendimento">
+<h2>🔵 Atendimento</h2>
 <div id="atendimento"></div>
 </div>
 
-<div class="bg-slate-800 p-4 rounded-xl">
-<h2 class="mb-3">🟢 Finalizados</h2>
+<div class="coluna bg-slate-800 p-4 rounded-xl" data-status="finalizado">
+<h2>🟢 Finalizados</h2>
 <div id="finalizado"></div>
 </div>
 
@@ -75,28 +80,9 @@ body { font-family: 'Inter', sans-serif; }
 <script>
 const API="https://sunprime-painel.vercel.app/api/pedidos";
 
-let somAtivo=true;
 let ids=new Set();
 const elementos={};
-
-// tema
-function toggleTema(){
- document.body.classList.toggle("bg-white");
- document.body.classList.toggle("text-black");
-}
-
-// som
-function toggleSom(){
- somAtivo=!somAtivo;
- alert(somAtivo?"Som ON":"Som OFF");
-}
-
-// SLA cor
-function corTempo(s){
- if(s<60)return "border-green-500";
- if(s<300)return "border-yellow-400";
- return "border-red-500";
-}
+let dragged=null;
 
 // tempo
 function tempo(data){
@@ -104,6 +90,13 @@ function tempo(data){
  if(s<60)return Math.floor(s)+"s";
  if(s<3600)return Math.floor(s/60)+"m";
  return Math.floor(s/3600)+"h";
+}
+
+// SLA
+function corTempo(s){
+ if(s<60)return "border-green-500";
+ if(s<300)return "border-yellow-400";
+ return "border-red-500";
 }
 
 // criar lead
@@ -121,7 +114,7 @@ function testeLead(){
  });
 }
 
-// atualizar status
+// atualizar
 function atualizar(id,status){
  fetch(API,{
   method:"PUT",
@@ -130,7 +123,43 @@ function atualizar(id,status){
  });
 }
 
-// render sem piscar
+// DRAG
+function setupDrag(card,id){
+ card.draggable=true;
+
+ card.addEventListener("dragstart",()=>{
+   dragged={id,card};
+   card.classList.add("dragging");
+ });
+
+ card.addEventListener("dragend",()=>{
+   card.classList.remove("dragging");
+ });
+}
+
+// DROP
+document.querySelectorAll(".coluna").forEach(col=>{
+ col.addEventListener("dragover",e=>{
+   e.preventDefault();
+   col.classList.add("drag-over");
+ });
+
+ col.addEventListener("dragleave",()=>{
+   col.classList.remove("drag-over");
+ });
+
+ col.addEventListener("drop",()=>{
+   col.classList.remove("drag-over");
+
+   if(dragged){
+     const status=col.dataset.status;
+     atualizar(dragged.id,status);
+     col.querySelector("div").prepend(dragged.card);
+   }
+ });
+});
+
+// render
 function render(dados){
 
  let total=dados.length;
@@ -141,25 +170,26 @@ function render(dados){
 
   if(!ids.has(d.id)){
     ids.add(d.id);
-    if(somAtivo) document.getElementById("som").play();
+    document.getElementById("som").play();
   }
 
   if(d.status==="em atendimento") att++;
   if(d.status==="finalizado") fin++;
 
-  let card = elementos[d.id];
+  let card=elementos[d.id];
 
   if(!card){
-    card = document.createElement("div");
-    elementos[d.id] = card;
+    card=document.createElement("div");
+    elementos[d.id]=card;
+    setupDrag(card,d.id);
   }
 
   let s=(Date.now()-new Date(d.criadoEm))/1000;
 
-  card.className=`bg-slate-700 p-3 rounded-lg mb-3 border-l-4 ${corTempo(s)} hover:scale-[1.02] transition`;
+  card.className=`bg-slate-700 p-3 rounded-lg mb-3 border-l-4 ${corTempo(s)} transition`;
 
   card.innerHTML=`
-    <div class="flex justify-between mb-1">
+    <div class="flex justify-between">
       <strong>${d.nome}</strong>
       <span class="text-xs opacity-70">${d.status}</span>
     </div>
@@ -169,13 +199,8 @@ function render(dados){
       📍 ${d.cidade}
     </div>
 
-    <div class="text-xs mt-1 opacity-60">
+    <div class="text-xs opacity-60 mt-1">
       ⏱ ${tempo(d.criadoEm)}
-    </div>
-
-    <div class="mt-2 flex gap-1">
-      <button onclick="atualizar(${d.id},'em atendimento')" class="bg-blue-600 px-2 py-1 rounded text-xs">Atender</button>
-      <button onclick="atualizar(${d.id},'finalizado')" class="bg-green-600 px-2 py-1 rounded text-xs">Finalizar</button>
     </div>
   `;
 
