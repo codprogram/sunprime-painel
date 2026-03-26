@@ -3,30 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sun Prime | Painel</title>
+    <title>Sun Prime | Painel Comercial</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-a: #faf2e3;
-            --bg-b: #efe1cc;
-            --card: rgba(255, 250, 244, 0.82);
-            --card-strong: #fffdf9;
-            --card-dark: #1d2529;
-            --line: rgba(31, 43, 47, 0.1);
-            --text: #172126;
-            --muted: #66757c;
-            --accent: #ea7e22;
-            --accent-soft: rgba(234, 126, 34, 0.14);
-            --green: #1d8f5a;
+            --bg-top: #f9f1e4;
+            --bg-bottom: #eedfc6;
+            --surface: rgba(255, 249, 240, 0.78);
+            --surface-strong: #fffdf9;
+            --surface-dark: #1a2327;
+            --line: rgba(27, 37, 42, 0.1);
+            --text: #182227;
+            --muted: #69777c;
+            --accent: #ea7f24;
+            --accent-strong: #d85f10;
+            --accent-soft: rgba(234, 127, 36, 0.12);
+            --green: #1e8d5b;
             --blue: #2f6fd6;
-            --purple: #7f55d9;
-            --yellow: #d28b15;
-            --shadow: 0 26px 70px rgba(19, 25, 28, 0.13);
+            --purple: #7f58d1;
+            --yellow: #d28a16;
+            --red: #c95248;
+            --shadow: 0 28px 80px rgba(22, 28, 31, 0.12);
             --radius-xl: 30px;
-            --radius-lg: 24px;
-            --radius-md: 18px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
         }
 
         * {
@@ -43,31 +45,32 @@
             font-family: "Manrope", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(234, 126, 34, 0.22), transparent 24%),
-                radial-gradient(circle at 90% 18%, rgba(29, 143, 90, 0.12), transparent 20%),
-                linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 100%);
+                radial-gradient(circle at left top, rgba(234, 127, 36, 0.2), transparent 24%),
+                radial-gradient(circle at right top, rgba(30, 141, 91, 0.12), transparent 20%),
+                linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
         }
 
         button,
         input,
-        select {
+        select,
+        textarea {
             font: inherit;
         }
 
-        .shell {
-            width: min(1500px, calc(100vw - 28px));
-            margin: 14px auto;
+        .app-shell {
+            width: min(1540px, calc(100vw - 24px));
+            margin: 12px auto;
             padding: 22px;
-            background: rgba(255, 248, 240, 0.72);
-            border: 1px solid rgba(255, 255, 255, 0.62);
             border-radius: 38px;
+            background: rgba(255, 247, 236, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.65);
             box-shadow: var(--shadow);
             backdrop-filter: blur(24px);
         }
 
         .hero {
             display: grid;
-            grid-template-columns: minmax(0, 1.45fr) 310px;
+            grid-template-columns: minmax(0, 1.55fr) 340px;
             gap: 18px;
             margin-bottom: 18px;
         }
@@ -76,40 +79,47 @@
         .hero-side,
         .panel {
             border-radius: var(--radius-xl);
-            border: 1px solid rgba(255, 255, 255, 0.84);
+            border: 1px solid rgba(255, 255, 255, 0.82);
         }
 
         .hero-main {
             position: relative;
             overflow: hidden;
             padding: 28px;
-            background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(255, 249, 242, 0.8));
+            background: linear-gradient(180deg, rgba(255, 253, 249, 0.97), rgba(255, 249, 241, 0.84));
         }
 
         .hero-main::after {
             content: "";
             position: absolute;
-            right: -70px;
-            bottom: -70px;
-            width: 240px;
-            height: 240px;
+            right: -78px;
+            bottom: -78px;
+            width: 260px;
+            height: 260px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(234, 126, 34, 0.24), transparent 70%);
+            background: radial-gradient(circle, rgba(234, 127, 36, 0.24), transparent 70%);
             pointer-events: none;
         }
 
-        .eyebrow {
+        .eyebrow,
+        .tag,
+        .badge,
+        .priority-pill,
+        .status-pill {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
             border-radius: 999px;
-            background: var(--accent-soft);
-            color: var(--accent);
-            font-size: 12px;
             font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .eyebrow {
+            padding: 8px 12px;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
         }
 
         h1,
@@ -120,29 +130,33 @@
         }
 
         .hero-title {
-            max-width: 13ch;
+            max-width: 12ch;
             margin-top: 16px;
-            font-size: clamp(38px, 4.6vw, 60px);
+            font-size: clamp(40px, 4.8vw, 62px);
             line-height: 0.95;
             letter-spacing: -0.055em;
         }
 
         .hero-copy {
-            max-width: 64ch;
             margin-top: 14px;
+            max-width: 70ch;
             color: var(--muted);
             line-height: 1.6;
         }
 
         .hero-actions,
-        .hero-tags {
+        .hero-tags,
+        .top-actions,
+        .detail-actions,
+        .stage-actions,
+        .view-toggle {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
         }
 
         .hero-actions {
-            margin-top: 24px;
+            margin-top: 22px;
         }
 
         .hero-tags {
@@ -154,7 +168,7 @@
             border-radius: 999px;
             padding: 13px 18px;
             cursor: pointer;
-            transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
         }
 
         .button:hover {
@@ -162,40 +176,35 @@
         }
 
         .button-primary {
-            color: #fff;
-            background: linear-gradient(135deg, #f08b2d, #e15f14);
-            box-shadow: 0 18px 34px rgba(225, 95, 20, 0.22);
+            color: white;
+            background: linear-gradient(135deg, #f08d30 0%, #df5e15 100%);
+            box-shadow: 0 18px 34px rgba(223, 94, 21, 0.22);
         }
 
         .button-secondary {
             color: var(--text);
-            background: rgba(23, 33, 38, 0.06);
+            background: rgba(24, 34, 39, 0.06);
         }
 
         .tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
             padding: 9px 13px;
-            border-radius: 999px;
             font-size: 12px;
-            font-weight: 700;
         }
 
         .tag.green {
-            background: rgba(29, 143, 90, 0.12);
             color: var(--green);
+            background: rgba(30, 141, 91, 0.12);
         }
 
         .tag.orange {
-            background: rgba(234, 126, 34, 0.12);
-            color: var(--accent);
+            color: var(--accent-strong);
+            background: rgba(234, 127, 36, 0.12);
         }
 
         .hero-side {
             padding: 22px;
-            color: #fff;
-            background: linear-gradient(160deg, #172024 0%, #243035 100%);
+            color: white;
+            background: linear-gradient(160deg, #182126 0%, #233036 100%);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -208,11 +217,11 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        .hero-side-value {
+        .hero-side-number {
             margin-top: 10px;
-            font-size: 58px;
+            font-size: 60px;
             line-height: 0.9;
-            letter-spacing: -0.07em;
+            letter-spacing: -0.08em;
             font-weight: 800;
         }
 
@@ -220,30 +229,30 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            margin-top: 22px;
+            margin-top: 20px;
         }
 
-        .mini {
+        .mini-stat {
             padding: 14px;
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .mini strong {
+        .mini-stat strong {
             display: block;
             margin-top: 8px;
             font-size: 24px;
         }
 
-        .content {
+        .workspace {
             display: grid;
-            grid-template-columns: minmax(0, 1.85fr) 350px;
+            grid-template-columns: minmax(0, 1.95fr) 360px;
             gap: 18px;
         }
 
         .panel {
-            background: var(--card);
+            background: var(--surface);
             backdrop-filter: blur(20px);
         }
 
@@ -272,7 +281,7 @@
 
         .filters-grid {
             display: grid;
-            grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+            grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr));
             gap: 12px;
         }
 
@@ -283,54 +292,89 @@
             gap: 10px;
             padding: 0 14px;
             border-radius: 18px;
-            background: rgba(255, 255, 255, 0.84);
+            background: rgba(255, 255, 255, 0.86);
             border: 1px solid var(--line);
         }
 
         .field input,
-        .field select {
+        .field select,
+        .note-input {
             width: 100%;
             border: 0;
+            outline: none;
             background: transparent;
             color: var(--text);
-            outline: none;
         }
 
         .metrics {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 12px;
             margin-bottom: 18px;
         }
 
-        .metric {
+        .metric-card {
             padding: 18px;
-            border-radius: var(--radius-lg);
-            background: var(--card-strong);
+            border-radius: 24px;
+            background: var(--surface-strong);
             border: 1px solid rgba(255, 255, 255, 0.82);
         }
 
-        .metric span {
+        .metric-card span {
             color: var(--muted);
             font-size: 13px;
         }
 
-        .metric strong {
+        .metric-card strong {
             display: block;
             margin-top: 10px;
             font-size: 34px;
             letter-spacing: -0.05em;
         }
 
-        .delta {
-            display: inline-flex;
-            margin-top: 12px;
+        .badge {
             padding: 6px 10px;
-            border-radius: 999px;
+            margin-top: 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge.green {
             color: var(--green);
-            background: rgba(29, 143, 90, 0.12);
-            font-size: 12px;
-            font-weight: 800;
+            background: rgba(30, 141, 91, 0.12);
+        }
+
+        .badge.orange {
+            color: var(--accent-strong);
+            background: rgba(234, 127, 36, 0.12);
+        }
+
+        .badge.blue {
+            color: var(--blue);
+            background: rgba(47, 111, 214, 0.12);
+        }
+
+        .view-toggle {
+            justify-content: flex-end;
+        }
+
+        .toggle-button,
+        .stage-button {
+            border: 0;
+            border-radius: 999px;
+            background: rgba(24, 34, 39, 0.06);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .toggle-button {
+            padding: 10px 14px;
+        }
+
+        .toggle-button.active,
+        .stage-button.current {
+            background: var(--surface-dark);
+            color: white;
         }
 
         .board-grid {
@@ -339,12 +383,36 @@
             gap: 14px;
         }
 
+        .board-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .list-row,
+        .lead-card {
+            width: 100%;
+            border: 1px solid transparent;
+            background: white;
+            box-shadow: 0 12px 26px rgba(24, 34, 39, 0.06);
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+            cursor: pointer;
+        }
+
+        .list-row:hover,
+        .list-row.active,
+        .lead-card:hover,
+        .lead-card.active {
+            transform: translateY(-2px);
+            border-color: rgba(234, 127, 36, 0.34);
+            box-shadow: 0 18px 32px rgba(24, 34, 39, 0.11);
+        }
+
         .column {
-            min-height: 540px;
+            min-height: 560px;
             padding: 14px;
             border-radius: 26px;
-            background: rgba(255, 255, 255, 0.55);
-            border: 1px solid rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.56);
+            border: 1px solid rgba(255, 255, 255, 0.72);
         }
 
         .column header {
@@ -355,56 +423,44 @@
             margin-bottom: 14px;
         }
 
-        .count {
+        .column-count {
             min-width: 32px;
             padding: 6px 10px;
-            border-radius: 999px;
             text-align: center;
+            border-radius: 999px;
             font-size: 12px;
             font-weight: 800;
-            background: rgba(23, 33, 38, 0.08);
+            background: rgba(24, 34, 39, 0.08);
         }
 
-        .cards {
+        .card-list {
             display: grid;
             gap: 12px;
         }
 
-        .empty {
-            padding: 20px;
+        .empty-state {
             min-height: 120px;
+            padding: 20px;
             display: grid;
             place-items: center;
             border-radius: 20px;
             border: 1px dashed var(--line);
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.56);
             color: var(--muted);
             text-align: center;
         }
 
-        .lead {
-            width: 100%;
+        .lead-card {
             padding: 16px;
-            border: 1px solid transparent;
             border-radius: 22px;
-            background: #fff;
-            box-shadow: 0 12px 24px rgba(23, 33, 38, 0.06);
             text-align: left;
-            cursor: pointer;
-            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
-        .lead:hover,
-        .lead.active {
-            transform: translateY(-2px);
-            border-color: rgba(234, 126, 34, 0.34);
-            box-shadow: 0 18px 30px rgba(23, 33, 38, 0.11);
-        }
-
-        .lead-top {
+        .lead-top,
+        .row-grid {
             display: flex;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
             align-items: flex-start;
         }
 
@@ -416,46 +472,56 @@
 
         .lead-phone {
             margin-top: 4px;
-            font-size: 13px;
             color: var(--muted);
+            font-size: 13px;
         }
 
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .priority-pill,
+        .status-pill {
             padding: 6px 10px;
-            border-radius: 999px;
             font-size: 11px;
-            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .priority-hot {
-            color: #bd3f37;
-            background: rgba(201, 75, 75, 0.12);
+            color: var(--red);
+            background: rgba(201, 82, 72, 0.12);
         }
 
         .priority-warm {
-            color: var(--accent);
-            background: rgba(234, 126, 34, 0.12);
+            color: var(--accent-strong);
+            background: rgba(234, 127, 36, 0.12);
         }
 
         .priority-cold {
-            color: #55656c;
-            background: rgba(85, 101, 108, 0.12);
+            color: #58676d;
+            background: rgba(88, 103, 109, 0.12);
+        }
+
+        .status-pending {
+            color: var(--blue);
+            background: rgba(47, 111, 214, 0.12);
+        }
+
+        .status-active {
+            color: var(--yellow);
+            background: rgba(210, 138, 22, 0.12);
+        }
+
+        .status-done {
+            color: var(--green);
+            background: rgba(30, 141, 91, 0.12);
         }
 
         .lead-meta {
             display: grid;
             gap: 8px;
             margin-top: 14px;
-            color: var(--muted);
             font-size: 13px;
+            color: var(--muted);
         }
 
-        .lead-foot {
+        .lead-footer {
             display: flex;
             justify-content: space-between;
             gap: 10px;
@@ -466,10 +532,30 @@
             color: var(--muted);
         }
 
+        .list-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 120px;
+            gap: 12px;
+            align-items: center;
+            padding: 16px 18px;
+            border-radius: 22px;
+        }
+
+        .list-head {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 120px;
+            gap: 12px;
+            padding: 0 18px 10px;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
         .details {
             min-height: calc(100vh - 90px);
             position: sticky;
-            top: 14px;
+            top: 12px;
         }
 
         .details-stack {
@@ -480,15 +566,15 @@
         .details-card {
             padding: 18px;
             border-radius: 24px;
-            background: var(--card-strong);
+            background: var(--surface-strong);
             border: 1px solid rgba(255, 255, 255, 0.82);
         }
 
         .details-head {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
             gap: 12px;
+            align-items: flex-start;
         }
 
         .details-head h2 {
@@ -501,7 +587,7 @@
             color: var(--muted);
         }
 
-        .dot {
+        .stage-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
@@ -515,24 +601,47 @@
             margin-top: 16px;
         }
 
-        .detail {
+        .detail-item {
             padding: 13px;
             border-radius: 18px;
-            background: rgba(23, 33, 38, 0.04);
+            background: rgba(24, 34, 39, 0.04);
         }
 
-        .detail span {
+        .detail-item span {
             display: block;
-            font-size: 11px;
             color: var(--muted);
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.06em;
         }
 
-        .detail strong {
+        .detail-item strong {
             display: block;
             margin-top: 6px;
             font-size: 14px;
+        }
+
+        .detail-actions select,
+        .note-box textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text);
+            outline: none;
+        }
+
+        .detail-actions select {
+            min-height: 46px;
+            padding: 0 12px;
+        }
+
+        .stage-actions {
+            margin-top: 16px;
+        }
+
+        .stage-button {
+            padding: 10px 12px;
         }
 
         .timeline {
@@ -559,38 +668,24 @@
             background: var(--accent);
         }
 
-        .stage-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .stage-button {
-            border: 0;
-            padding: 10px 12px;
-            border-radius: 999px;
-            background: rgba(23, 33, 38, 0.06);
-            color: var(--text);
-            cursor: pointer;
-        }
-
-        .stage-button.current {
-            background: var(--card-dark);
-            color: #fff;
+        .note-box textarea {
+            min-height: 100px;
+            resize: vertical;
+            padding: 12px 14px;
+            margin-top: 12px;
         }
 
         .details-empty {
+            min-height: 420px;
             display: grid;
             place-items: center;
-            min-height: 420px;
             text-align: center;
             color: var(--muted);
         }
 
-        @media (max-width: 1220px) {
+        @media (max-width: 1260px) {
             .hero,
-            .content {
+            .workspace {
                 grid-template-columns: 1fr;
             }
 
@@ -600,21 +695,26 @@
             }
         }
 
-        @media (max-width: 1040px) {
+        @media (max-width: 1080px) {
+            .metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .filters-grid,
+            .detail-grid,
+            .hero-side-grid,
             .board-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .metrics,
-            .filters-grid,
-            .detail-grid,
-            .hero-side-grid {
+            .list-head,
+            .list-row {
                 grid-template-columns: 1fr 1fr;
             }
         }
 
-        @media (max-width: 720px) {
-            .shell {
+        @media (max-width: 760px) {
+            .app-shell {
                 width: min(100vw - 14px, 100%);
                 margin: 7px auto;
                 padding: 12px;
@@ -625,66 +725,68 @@
             .hero-side,
             .panel,
             .column,
-            .details-card {
+            .details-card,
+            .metric-card {
                 border-radius: 22px;
-            }
-
-            .board-grid,
-            .metrics,
-            .filters-grid,
-            .detail-grid,
-            .hero-side-grid {
-                grid-template-columns: 1fr;
             }
 
             .hero-title {
                 max-width: none;
-                font-size: 36px;
+                font-size: 38px;
+            }
+
+            .metrics,
+            .filters-grid,
+            .hero-side-grid,
+            .detail-grid,
+            .board-grid,
+            .list-head,
+            .list-row {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="shell">
+    <div class="app-shell">
         <section class="hero">
             <article class="hero-main">
-                <div class="eyebrow">Operacao Comercial</div>
-                <h1 class="hero-title">Layout pronto para acompanhar leads, estagios do bot e fila de atendimento.</h1>
+                <div class="eyebrow">Painel Comercial Sun Prime</div>
+                <h1 class="hero-title">Painel mais funcional, pronto para operacao e futura integracao.</h1>
                 <p class="hero-copy">
-                    A interface da Vercel agora segue a mesma linha do painel desenhado no SwiftUI:
-                    destaque operacional no topo, leitura rápida de métricas, pipeline visível e detalhe lateral para ação humana.
+                    A interface agora foi organizada para trabalho real de equipe: leitura rapida de indicadores,
+                    fila por etapa, visao em lista, responsavel comercial, observacoes internas e destaque para o que precisa de acao humana.
                 </p>
                 <div class="hero-actions">
-                    <button class="button button-primary" id="refreshButton">Atualizar painel</button>
-                    <button class="button button-secondary" id="seedButton">Gerar lead teste</button>
+                    <button class="button button-primary" id="refreshButton">Atualizar base</button>
+                    <button class="button button-secondary" id="seedButton">Gerar lead</button>
                 </div>
                 <div class="hero-tags">
-                    <span class="tag green">Bot monitorado</span>
-                    <span class="tag orange">CSV + Sheets prontos</span>
+                    <span class="tag green">Fluxo comercial mapeado</span>
+                    <span class="tag orange">Mock pronto para integrar</span>
                 </div>
             </article>
 
             <aside class="hero-side">
                 <div>
-                    <div class="hero-side-label">Painel ao vivo</div>
-                    <div class="hero-side-value" id="connectedCount">0</div>
-                    <div class="small" style="color: rgba(255,255,255,0.72); margin-top: 8px;">leads no recorte atual</div>
+                    <div class="hero-side-label">Leads visiveis</div>
+                    <div class="hero-side-number" id="visibleCount">0</div>
+                    <div class="small" style="color: rgba(255,255,255,0.72); margin-top: 8px;">recorte atual do painel</div>
                 </div>
-
                 <div class="hero-side-grid">
-                    <div class="mini">
+                    <div class="mini-stat">
                         <div class="small" style="color: rgba(255,255,255,0.72);">Quentes</div>
                         <strong id="hotCount">0</strong>
                     </div>
-                    <div class="mini">
-                        <div class="small" style="color: rgba(255,255,255,0.72);">Follow-up</div>
-                        <strong id="followUpCount">0</strong>
-                    </div>
-                    <div class="mini">
+                    <div class="mini-stat">
                         <div class="small" style="color: rgba(255,255,255,0.72);">Especialista</div>
-                        <strong id="humanCount">0</strong>
+                        <strong id="specialistCount">0</strong>
                     </div>
-                    <div class="mini">
+                    <div class="mini-stat">
+                        <div class="small" style="color: rgba(255,255,255,0.72);">Finalizados</div>
+                        <strong id="doneCount">0</strong>
+                    </div>
+                    <div class="mini-stat">
                         <div class="small" style="color: rgba(255,255,255,0.72);">Conta informada</div>
                         <strong id="billCount">0</strong>
                     </div>
@@ -692,15 +794,21 @@
             </aside>
         </section>
 
-        <section class="content">
+        <div class="workspace">
             <main>
                 <section class="panel filters">
                     <div class="section-top">
                         <div>
-                            <h2>Leitura operacional</h2>
-                            <p class="small">Filtros locais prontos para encaixar na API real depois.</p>
+                            <h2>Operacao</h2>
+                            <p class="small">Filtro por texto, etapa, prioridade, responsavel e origem.</p>
                         </div>
-                        <div class="small" id="lastUpdatedLabel">Atualizado agora</div>
+                        <div class="top-actions">
+                            <div class="view-toggle">
+                                <button class="toggle-button active" data-view="kanban">Kanban</button>
+                                <button class="toggle-button" data-view="lista">Lista</button>
+                            </div>
+                            <div class="small" id="lastUpdatedLabel">Atualizado agora</div>
+                        </div>
                     </div>
 
                     <div class="filters-grid">
@@ -710,23 +818,7 @@
                         </label>
                         <label class="field">
                             <span>Etapa</span>
-                            <select id="stageFilter">
-                                <option value="all">Todas</option>
-                                <option value="new">Novos</option>
-                                <option value="budget">Orcamentos</option>
-                                <option value="specialist">Especialista</option>
-                                <option value="question">Duvidas</option>
-                                <option value="done">Finalizados</option>
-                            </select>
-                        </label>
-                        <label class="field">
-                            <span>Origem</span>
-                            <select id="sourceFilter">
-                                <option value="all">Todas</option>
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="csv">CSV</option>
-                                <option value="sheets">Sheets</option>
-                            </select>
+                            <select id="stageFilter"></select>
                         </label>
                         <label class="field">
                             <span>Prioridade</span>
@@ -737,6 +829,19 @@
                                 <option value="cold">Frio</option>
                             </select>
                         </label>
+                        <label class="field">
+                            <span>Responsavel</span>
+                            <select id="ownerFilter"></select>
+                        </label>
+                        <label class="field">
+                            <span>Origem</span>
+                            <select id="sourceFilter">
+                                <option value="all">Todas</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="csv">CSV</option>
+                                <option value="sheets">Sheets</option>
+                            </select>
+                        </label>
                     </div>
                 </section>
 
@@ -745,13 +850,12 @@
                 <section class="panel board">
                     <div class="section-top">
                         <div>
-                            <h2>Pipeline do bot e atendimento</h2>
-                            <p class="small">Mesmo raciocinio visual do painel SwiftUI, agora no frontend da Vercel.</p>
+                            <h2>Pipeline</h2>
+                            <p class="small">Kanban para triagem e lista para leitura analitica.</p>
                         </div>
                         <div class="small" id="boardSummary">0 leads visiveis</div>
                     </div>
-
-                    <div class="board-grid" id="boardGrid"></div>
+                    <div id="boardContent"></div>
                 </section>
             </main>
 
@@ -759,28 +863,31 @@
                 <div class="details-empty">
                     <div>
                         <h2>Nenhum lead selecionado</h2>
-                        <p>Escolha um card no pipeline para abrir os detalhes.</p>
+                        <p>Selecione um card no painel para abrir os detalhes operacionais.</p>
                     </div>
                 </div>
             </aside>
-        </section>
+        </div>
     </div>
 
     <script>
         const API_URL = "/api/pedidos";
+        const STORAGE_KEY = "sunprime-panel-v2";
 
-        const stages = [
-            { key: "new", label: "Novos", dot: "#d28b15" },
-            { key: "budget", label: "Orcamentos", dot: "#ea7e22" },
-            { key: "specialist", label: "Especialista", dot: "#2f6fd6" },
-            { key: "question", label: "Duvidas", dot: "#7f55d9" },
-            { key: "done", label: "Finalizados", dot: "#1d8f5a" }
+        const stageDefinitions = [
+            { key: "new", label: "Novos", dot: "#d28a16", statusTone: "status-pending" },
+            { key: "budget", label: "Orcamentos", dot: "#ea7f24", statusTone: "status-active" },
+            { key: "specialist", label: "Especialista", dot: "#2f6fd6", statusTone: "status-pending" },
+            { key: "question", label: "Duvidas", dot: "#7f58d1", statusTone: "status-active" },
+            { key: "done", label: "Finalizados", dot: "#1e8d5b", statusTone: "status-done" }
         ];
+
+        const owners = ["Sem dono", "Marcos", "Comercial 1", "Comercial 2", "Especialista"];
 
         const mockLeads = [
             {
                 id: "lead-001",
-                nome: "Amanda Siqueira",
+                nome: "Lead Residencial Recife",
                 telefone: "5581993020011",
                 telefoneContato: "(81) 99302-0011",
                 cidade: "Recife - PE",
@@ -792,16 +899,19 @@
                 origem: ["whatsapp", "csv", "sheets"],
                 criadoEm: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
                 ultimoEventoEm: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-                resumo: "Informou nome, cidade e media da conta. Falta confirmar o tipo de imovel.",
+                resumo: "Cliente preencheu quase todo o fluxo de orcamento. Falta confirmar tipo de imovel.",
                 timeline: [
-                    "Entrou pelo menu principal e escolheu solicitar orcamento.",
-                    "Informou nome, cidade e media da conta de luz.",
-                    "Falta confirmar o tipo de imovel."
-                ]
+                    "Entrou pelo menu e escolheu simulacao.",
+                    "Informou nome, cidade e conta media.",
+                    "Aguardando ultimo dado para fechar qualificacao."
+                ],
+                owner: "Marcos",
+                note: "Retornar ainda hoje.",
+                sourceStatus: "Ativo"
             },
             {
                 id: "lead-002",
-                nome: "Carlos Eduardo",
+                nome: "Lead Tecnico Jaboatao",
                 telefone: "5581998112200",
                 telefoneContato: "(81) 99811-2200",
                 cidade: "Jaboatao - PE",
@@ -813,16 +923,19 @@
                 origem: ["whatsapp"],
                 criadoEm: new Date(Date.now() - 52 * 60 * 1000).toISOString(),
                 ultimoEventoEm: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
-                resumo: "Lead pede ajuda humana para revisar dimensionamento e manutencao.",
+                resumo: "Lead precisa de atendimento humano para esclarecer manutencao e dimensionamento.",
                 timeline: [
-                    "Cliente pediu atendimento humano.",
+                    "Pediu atendimento com especialista.",
                     "Selecionou motivo tecnico.",
-                    "Aguardando telefone para retorno."
-                ]
+                    "Aguardando retorno humano."
+                ],
+                owner: "Especialista",
+                note: "Confirmar telefone alternativo.",
+                sourceStatus: "Fila humana"
             },
             {
                 id: "lead-003",
-                nome: "Fernanda Lima",
+                nome: "Lead Comercial Caruaru",
                 telefone: "5581987329910",
                 telefoneContato: "(81) 98732-9910",
                 cidade: "Caruaru - PE",
@@ -834,16 +947,19 @@
                 origem: ["whatsapp", "csv"],
                 criadoEm: new Date(Date.now() - 4.5 * 60 * 60 * 1000).toISOString(),
                 ultimoEventoEm: new Date(Date.now() - 48 * 60 * 1000).toISOString(),
-                resumo: "Cadastro salvo no CSV e no Sheets. Pronto para retorno da equipe comercial.",
+                resumo: "Lead qualificado e salvo. Pronto para abordagem comercial.",
                 timeline: [
-                    "Enviou foto da conta e completou o cadastro.",
-                    "Bot finalizou o atendimento.",
-                    "Lead aguardando retorno comercial."
-                ]
+                    "Concluiu cadastro de orcamento.",
+                    "Bot encerrou atendimento.",
+                    "Aguardando abordagem da equipe."
+                ],
+                owner: "Comercial 1",
+                note: "Priorizar proposta comercial.",
+                sourceStatus: "Pronto"
             },
             {
                 id: "lead-004",
-                nome: "Joao Victor",
+                nome: "Lead Financiamento Olinda",
                 telefone: "5581997654433",
                 telefoneContato: "(81) 99765-4433",
                 cidade: "Olinda - PE",
@@ -855,15 +971,18 @@
                 origem: ["whatsapp"],
                 criadoEm: new Date(Date.now() - 95 * 60 * 1000).toISOString(),
                 ultimoEventoEm: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-                resumo: "Entrou pelo menu tecnico para entender parcelamento e retorno.",
+                resumo: "Entrou na trilha de duvidas e precisa de orientacao financeira objetiva.",
                 timeline: [
-                    "Entrou na trilha de duvidas tecnicas.",
-                    "Aguardando pergunta livre para consulta da IA."
-                ]
+                    "Selecionou duvidas tecnicas.",
+                    "Pergunta focada em parcelamento e retorno."
+                ],
+                owner: "Sem dono",
+                note: "",
+                sourceStatus: "Em conversa"
             },
             {
                 id: "lead-005",
-                nome: "Luciana Alves",
+                nome: "Lead Menu Moreno",
                 telefone: "5581988441020",
                 telefoneContato: "(81) 98844-1020",
                 cidade: "Moreno - PE",
@@ -875,22 +994,50 @@
                 origem: ["whatsapp"],
                 criadoEm: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
                 ultimoEventoEm: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-                resumo: "Voltou para o menu principal e aguarda nova escolha.",
+                resumo: "Lead ainda frio, mas ja tem consumo interessante para nova tentativa.",
                 timeline: [
-                    "Cliente retornou usando 0.",
-                    "Aguardando nova acao no menu."
-                ]
+                    "Retornou ao menu principal.",
+                    "Aguardando nova escolha."
+                ],
+                owner: "Sem dono",
+                note: "Testar reativacao amanha.",
+                sourceStatus: "Novo"
+            },
+            {
+                id: "lead-006",
+                nome: "Lead Rural Paulista",
+                telefone: "5581999990000",
+                telefoneContato: "(81) 99999-0000",
+                cidade: "Paulista - PE",
+                contaLuz: "R$ 680",
+                tipoImovel: "Zona Rural",
+                motivo: "Quer reduzir custo operacional",
+                botEstado: "ORCAMENTO_AGUARDANDO_CIDADE",
+                prioridade: "hot",
+                origem: ["csv"],
+                criadoEm: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+                ultimoEventoEm: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+                resumo: "Ticket alto, perfil interessante para abordagem consultiva.",
+                timeline: [
+                    "Lead importado para qualificacao.",
+                    "Conta alta indica potencial de economia forte."
+                ],
+                owner: "Comercial 2",
+                note: "Montar proposta premium.",
+                sourceStatus: "Qualificar"
             }
         ];
 
         const state = {
             leads: [],
             selectedLeadId: null,
+            viewMode: "kanban",
             filters: {
                 search: "",
                 stage: "all",
-                source: "all",
-                priority: "all"
+                priority: "all",
+                owner: "all",
+                source: "all"
             },
             lastUpdatedAt: new Date()
         };
@@ -904,15 +1051,39 @@
             return "new";
         }
 
+        function readLocalStore() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+            } catch (_) {
+                return {};
+            }
+        }
+
+        function writeLocalStore() {
+            const payload = {};
+
+            state.leads.forEach((lead) => {
+                payload[lead.id] = {
+                    owner: lead.owner,
+                    note: lead.note,
+                    stage: lead.stage
+                };
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        }
+
         function normalizeLead(rawLead) {
+            const saved = readLocalStore()[rawLead.id] || {};
             const botEstado = rawLead.botEstado || rawLead.status || "AGUARDANDO_OPCAO";
+
             return {
                 id: String(rawLead.id),
                 nome: rawLead.nome || "Lead sem nome",
                 telefone: rawLead.telefone || rawLead.telefoneContato || "Nao informado",
                 telefoneContato: rawLead.telefoneContato || rawLead.telefone || "Nao informado",
                 cidade: rawLead.cidade || "Nao informada",
-                contaLuz: rawLead.contaLuz || "Nao informado",
+                contaLuz: rawLead.contaLuz || rawLead.conta || "Nao informado",
                 tipoImovel: rawLead.tipoImovel || "Nao informado",
                 motivo: rawLead.motivo || "Sem motivo definido",
                 botEstado,
@@ -922,7 +1093,10 @@
                 ultimoEventoEm: rawLead.ultimoEventoEm || rawLead.criadoEm || new Date().toISOString(),
                 resumo: rawLead.resumo || "Sem resumo operacional registrado.",
                 timeline: rawLead.timeline || ["Lead recebido no pipeline."],
-                stage: deriveStage(botEstado)
+                owner: saved.owner || rawLead.owner || "Sem dono",
+                note: saved.note ?? rawLead.note ?? "",
+                sourceStatus: rawLead.sourceStatus || "Ativo",
+                stage: saved.stage || deriveStage(botEstado)
             };
         }
 
@@ -933,7 +1107,7 @@
 
                 const data = await response.json();
                 state.leads = Array.isArray(data) && data.length ? data.map(normalizeLead) : mockLeads.map(normalizeLead);
-            } catch (error) {
+            } catch (_) {
                 state.leads = mockLeads.map(normalizeLead);
             }
 
@@ -942,25 +1116,37 @@
             }
 
             state.lastUpdatedAt = new Date();
+            writeLocalStore();
             render();
+        }
+
+        function relativeTime(isoDate) {
+            const minutes = Math.max(1, Math.floor((Date.now() - new Date(isoDate).getTime()) / 60000));
+            if (minutes < 60) return `${minutes} min atras`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} h atras`;
+            return `${Math.floor(hours / 24)} d atras`;
+        }
+
+        function priorityLabel(priority) {
+            if (priority === "hot") return "Quente";
+            if (priority === "cold") return "Frio";
+            return "Morno";
+        }
+
+        function stageLabel(stage) {
+            return stageDefinitions.find((item) => item.key === stage)?.label || stage;
         }
 
         function filteredLeads() {
             return state.leads.filter((lead) => {
-                const searchBase = [
-                    lead.nome,
-                    lead.telefoneContato,
-                    lead.cidade,
-                    lead.motivo,
-                    lead.botEstado
-                ].join(" ").toLowerCase();
-
-                const matchesSearch = searchBase.includes(state.filters.search.toLowerCase());
+                const queryBase = [lead.nome, lead.telefoneContato, lead.cidade, lead.motivo, lead.owner].join(" ").toLowerCase();
+                const matchesSearch = queryBase.includes(state.filters.search.toLowerCase());
                 const matchesStage = state.filters.stage === "all" || lead.stage === state.filters.stage;
-                const matchesSource = state.filters.source === "all" || lead.origem.includes(state.filters.source);
                 const matchesPriority = state.filters.priority === "all" || lead.prioridade === state.filters.priority;
-
-                return matchesSearch && matchesStage && matchesSource && matchesPriority;
+                const matchesOwner = state.filters.owner === "all" || lead.owner === state.filters.owner;
+                const matchesSource = state.filters.source === "all" || lead.origem.includes(state.filters.source);
+                return matchesSearch && matchesStage && matchesPriority && matchesOwner && matchesSource;
             });
         }
 
@@ -968,72 +1154,104 @@
             return leads.find((lead) => lead.id === state.selectedLeadId) || leads[0] || null;
         }
 
-        function relativeTime(iso) {
-            const minutes = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
-            if (minutes < 60) return `${minutes} min atras`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours} h atras`;
-            return `${Math.floor(hours / 24)} d atras`;
-        }
-
-        function renderMetrics(leads) {
+        function metricCards(leads) {
             const cards = [
-                { label: "Leads no painel", value: leads.length, detail: "recorte atual" },
-                { label: "Orcamentos ativos", value: leads.filter((lead) => lead.stage === "budget").length, detail: "conta de luz em analise" },
-                { label: "Aguardando humano", value: leads.filter((lead) => lead.stage === "specialist").length, detail: "fila comercial" },
-                { label: "Finalizados hoje", value: leads.filter((lead) => lead.stage === "done").length, detail: "follow-up pronto" }
+                { title: "Leads no radar", value: leads.length, badge: "recorte atual", tone: "green" },
+                { title: "Aguardando humano", value: leads.filter((lead) => lead.stage === "specialist").length, badge: "fila critica", tone: "blue" },
+                { title: "Ticket quente", value: leads.filter((lead) => lead.prioridade === "hot").length, badge: "prioridade alta", tone: "orange" },
+                { title: "Sem dono", value: leads.filter((lead) => lead.owner === "Sem dono").length, badge: "distribuir", tone: "orange" },
+                { title: "Finalizados", value: leads.filter((lead) => lead.stage === "done").length, badge: "follow-up", tone: "green" }
             ];
 
             document.getElementById("metrics").innerHTML = cards.map((card) => `
-                <article class="metric">
-                    <span>${card.label}</span>
+                <article class="metric-card">
+                    <span>${card.title}</span>
                     <strong>${card.value}</strong>
-                    <div class="delta">${card.detail}</div>
+                    <div class="badge ${card.tone}">${card.badge}</div>
                 </article>
             `).join("");
         }
 
-        function renderBoard(leads) {
-            document.getElementById("boardGrid").innerHTML = stages.map((stage) => {
-                const stageLeads = leads.filter((lead) => lead.stage === stage.key);
+        function renderKanban(leads) {
+            return `
+                <div class="board-grid">
+                    ${stageDefinitions.map((stage) => {
+                        const stageLeads = leads.filter((lead) => lead.stage === stage.key);
+                        return `
+                            <section class="column">
+                                <header>
+                                    <h3>${stage.label}</h3>
+                                    <span class="column-count">${stageLeads.length}</span>
+                                </header>
+                                <div class="card-list">
+                                    ${stageLeads.length ? stageLeads.map((lead) => renderLeadCard(lead)).join("") : `
+                                        <div class="empty-state">Nenhum lead nesta etapa.</div>
+                                    `}
+                                </div>
+                            </section>
+                        `;
+                    }).join("")}
+                </div>
+            `;
+        }
 
-                return `
-                    <section class="column">
-                        <header>
-                            <h3>${stage.label}</h3>
-                            <span class="count">${stageLeads.length}</span>
-                        </header>
-                        <div class="cards">
-                            ${stageLeads.length ? stageLeads.map((lead) => `
-                                <button class="lead ${lead.id === state.selectedLeadId ? "active" : ""}" data-lead-id="${lead.id}">
-                                    <div class="lead-top">
-                                        <div>
-                                            <div class="lead-name">${lead.nome}</div>
-                                            <div class="lead-phone">${lead.telefoneContato}</div>
-                                        </div>
-                                        <span class="pill priority-${lead.prioridade}">${priorityLabel(lead.prioridade)}</span>
-                                    </div>
-                                    <div class="lead-meta">
-                                        <div>${lead.cidade}</div>
-                                        <div>${lead.motivo}</div>
-                                        <div>Bot: ${lead.botEstado}</div>
-                                    </div>
-                                    <div class="lead-foot">
-                                        <span>${lead.contaLuz}</span>
-                                        <span>${relativeTime(lead.ultimoEventoEm)}</span>
-                                    </div>
-                                </button>
-                            `).join("") : `
-                                <div class="empty">Nenhum lead nesta etapa.</div>
-                            `}
+        function renderLeadCard(lead) {
+            return `
+                <button class="lead-card ${lead.id === state.selectedLeadId ? "active" : ""}" data-lead-id="${lead.id}">
+                    <div class="lead-top">
+                        <div>
+                            <div class="lead-name">${lead.nome}</div>
+                            <div class="lead-phone">${lead.telefoneContato}</div>
                         </div>
-                    </section>
-                `;
-            }).join("");
+                        <span class="priority-pill priority-${lead.prioridade}">${priorityLabel(lead.prioridade)}</span>
+                    </div>
+                    <div class="lead-meta">
+                        <div>${lead.cidade}</div>
+                        <div>${lead.motivo}</div>
+                        <div>Responsavel: ${lead.owner}</div>
+                    </div>
+                    <div class="lead-footer">
+                        <span>${lead.contaLuz}</span>
+                        <span>${relativeTime(lead.ultimoEventoEm)}</span>
+                    </div>
+                </button>
+            `;
+        }
 
-            document.querySelectorAll("[data-lead-id]").forEach((button) => {
-                button.addEventListener("click", () => {
-                    state.selectedLeadId = button.dataset.leadId;
+        function renderList(leads) {
+            return `
+                <div class="board-list">
+                    <div class="list-head">
+                        <div>Lead</div>
+                        <div>Etapa</div>
+                        <div>Cidade</div>
+                        <div>Responsavel</div>
+                        <div>Prioridade</div>
+                        <div>Ultimo toque</div>
+                    </div>
+                    ${leads.map((lead) => `
+                        <button class="list-row ${lead.id === state.selectedLeadId ? "active" : ""}" data-lead-id="${lead.id}">
+                            <div>
+                                <div class="lead-name">${lead.nome}</div>
+                                <div class="lead-phone">${lead.telefoneContato}</div>
+                            </div>
+                            <div><span class="status-pill ${stageDefinitions.find((item) => item.key === lead.stage)?.statusTone || "status-pending"}">${stageLabel(lead.stage)}</span></div>
+                            <div>${lead.cidade}</div>
+                            <div>${lead.owner}</div>
+                            <div><span class="priority-pill priority-${lead.prioridade}">${priorityLabel(lead.prioridade)}</span></div>
+                            <div>${relativeTime(lead.ultimoEventoEm)}</div>
+                        </button>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        function renderBoard(leads) {
+            document.getElementById("boardContent").innerHTML = state.viewMode === "kanban" ? renderKanban(leads) : renderList(leads);
+
+            document.querySelectorAll("[data-lead-id]").forEach((element) => {
+                element.addEventListener("click", () => {
+                    state.selectedLeadId = element.dataset.leadId;
                     render();
                 });
             });
@@ -1054,7 +1272,7 @@
                 return;
             }
 
-            const stage = stages.find((item) => item.key === lead.stage);
+            const stage = stageDefinitions.find((item) => item.key === lead.stage);
 
             panel.innerHTML = `
                 <div class="details-stack">
@@ -1064,40 +1282,45 @@
                                 <h2>${lead.nome}</h2>
                                 <p>${lead.motivo}</p>
                             </div>
-                            <span class="dot" style="background:${stage.dot}"></span>
+                            <span class="stage-dot" style="background:${stage.dot}"></span>
                         </div>
-
                         <div class="detail-grid">
-                            <div class="detail">
+                            <div class="detail-item">
                                 <span>Telefone</span>
                                 <strong>${lead.telefoneContato}</strong>
                             </div>
-                            <div class="detail">
+                            <div class="detail-item">
                                 <span>Cidade</span>
                                 <strong>${lead.cidade}</strong>
                             </div>
-                            <div class="detail">
+                            <div class="detail-item">
                                 <span>Conta de luz</span>
                                 <strong>${lead.contaLuz}</strong>
                             </div>
-                            <div class="detail">
+                            <div class="detail-item">
                                 <span>Tipo de imovel</span>
                                 <strong>${lead.tipoImovel}</strong>
                             </div>
-                            <div class="detail">
+                            <div class="detail-item">
                                 <span>Estado do bot</span>
                                 <strong>${lead.botEstado}</strong>
                             </div>
-                            <div class="detail">
+                            <div class="detail-item">
                                 <span>Origem</span>
                                 <strong>${lead.origem.join(" + ")}</strong>
                             </div>
                         </div>
-
-                        <div class="stage-buttons">
-                            ${stages.map((stageOption) => `
-                                <button class="stage-button ${lead.stage === stageOption.key ? "current" : ""}" data-stage="${stageOption.key}">
-                                    ${stageOption.label}
+                        <div class="detail-actions" style="margin-top: 16px;">
+                            <select id="ownerSelect">
+                                ${owners.map((owner) => `
+                                    <option value="${owner}" ${owner === lead.owner ? "selected" : ""}>${owner}</option>
+                                `).join("")}
+                            </select>
+                        </div>
+                        <div class="stage-actions">
+                            ${stageDefinitions.map((item) => `
+                                <button class="stage-button ${lead.stage === item.key ? "current" : ""}" data-stage="${item.key}">
+                                    ${item.label}
                                 </button>
                             `).join("")}
                         </div>
@@ -1106,6 +1329,16 @@
                     <section class="details-card">
                         <h3>Resumo operacional</h3>
                         <p style="margin-top:12px; color: var(--muted); line-height: 1.6;">${lead.resumo}</p>
+                    </section>
+
+                    <section class="details-card">
+                        <h3>Observacao interna</h3>
+                        <div class="note-box">
+                            <textarea id="noteInput" placeholder="Escreva aqui a observacao do time...">${lead.note || ""}</textarea>
+                            <div class="detail-actions" style="margin-top: 12px;">
+                                <button class="button button-secondary" id="saveNoteButton">Salvar observacao</button>
+                            </div>
+                        </div>
                     </section>
 
                     <section class="details-card">
@@ -1118,11 +1351,20 @@
             `;
 
             panel.querySelectorAll("[data-stage]").forEach((button) => {
-                button.addEventListener("click", () => updateStage(lead.id, button.dataset.stage));
+                button.addEventListener("click", () => updateLeadStage(lead.id, button.dataset.stage));
+            });
+
+            document.getElementById("ownerSelect").addEventListener("change", (event) => {
+                updateLeadOwner(lead.id, event.target.value);
+            });
+
+            document.getElementById("saveNoteButton").addEventListener("click", () => {
+                const value = document.getElementById("noteInput").value;
+                updateLeadNote(lead.id, value);
             });
         }
 
-        async function updateStage(leadId, nextStage) {
+        function updateLeadStage(leadId, stage) {
             const botStateMap = {
                 new: "AGUARDANDO_OPCAO",
                 budget: "ORCAMENTO_AGUARDANDO_NOME",
@@ -1131,42 +1373,41 @@
                 done: "FINALIZADO"
             };
 
-            let updatedLead = null;
-
-            state.leads = state.leads.map((lead) => {
-                if (lead.id !== leadId) return lead;
-                updatedLead = {
-                    ...lead,
-                    stage: nextStage,
-                    botEstado: botStateMap[nextStage],
-                    ultimoEventoEm: new Date().toISOString(),
-                    timeline: [`Etapa movida manualmente para ${labelForStage(nextStage)}.`, ...lead.timeline]
-                };
-                return updatedLead;
-            });
+            state.leads = state.leads.map((lead) => lead.id === leadId ? {
+                ...lead,
+                stage,
+                botEstado: botStateMap[stage],
+                ultimoEventoEm: new Date().toISOString(),
+                timeline: [`Etapa alterada manualmente para ${stageLabel(stage)}.`, ...lead.timeline]
+            } : lead);
 
             state.lastUpdatedAt = new Date();
+            writeLocalStore();
             render();
-
-            if (!updatedLead) return;
-
-            try {
-                await fetch(API_URL, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(updatedLead)
-                });
-            } catch (_) {}
         }
 
-        async function seedLead() {
+        function updateLeadOwner(leadId, owner) {
+            state.leads = state.leads.map((lead) => lead.id === leadId ? { ...lead, owner } : lead);
+            state.lastUpdatedAt = new Date();
+            writeLocalStore();
+            render();
+        }
+
+        function updateLeadNote(leadId, note) {
+            state.leads = state.leads.map((lead) => lead.id === leadId ? { ...lead, note } : lead);
+            state.lastUpdatedAt = new Date();
+            writeLocalStore();
+            render();
+        }
+
+        function seedLead() {
             const lead = normalizeLead({
                 id: `lead-${Date.now()}`,
                 nome: "Novo Lead Simulado",
-                telefone: "5581999990000",
-                telefoneContato: "(81) 99999-0000",
-                cidade: "Paulista - PE",
-                contaLuz: "R$ 385",
+                telefone: "5581999000000",
+                telefoneContato: "(81) 99900-0000",
+                cidade: "Abreu e Lima - PE",
+                contaLuz: "R$ 390",
                 tipoImovel: "Residencia",
                 motivo: "Solicitou orcamento de energia solar",
                 botEstado: "ORCAMENTO_AGUARDANDO_CIDADE",
@@ -1174,42 +1415,40 @@
                 origem: ["whatsapp", "csv"],
                 criadoEm: new Date().toISOString(),
                 ultimoEventoEm: new Date().toISOString(),
-                resumo: "Lead criado no frontend para validar a experiencia antes da integracao real.",
+                resumo: "Lead gerado no painel para testar operacao.",
                 timeline: [
-                    "Lead de teste gerado no painel web.",
-                    "Pronto para substituir por dados reais do bot."
-                ]
+                    "Lead de teste criado no frontend.",
+                    "Pronto para uso na validacao da equipe."
+                ],
+                owner: "Sem dono",
+                note: "",
+                sourceStatus: "Novo"
             });
 
             state.leads = [lead, ...state.leads];
             state.selectedLeadId = lead.id;
             state.lastUpdatedAt = new Date();
+            writeLocalStore();
             render();
-
-            try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(lead)
-                });
-            } catch (_) {}
         }
 
-        function priorityLabel(priority) {
-            if (priority === "hot") return "Quente";
-            if (priority === "cold") return "Frio";
-            return "Morno";
-        }
+        function populateFilters() {
+            document.getElementById("stageFilter").innerHTML = `
+                <option value="all">Todas</option>
+                ${stageDefinitions.map((stage) => `<option value="${stage.key}">${stage.label}</option>`).join("")}
+            `;
 
-        function labelForStage(stage) {
-            return stages.find((item) => item.key === stage)?.label || stage;
+            document.getElementById("ownerFilter").innerHTML = `
+                <option value="all">Todos</option>
+                ${owners.map((owner) => `<option value="${owner}">${owner}</option>`).join("")}
+            `;
         }
 
         function updateHeader(leads) {
-            document.getElementById("connectedCount").textContent = leads.length;
+            document.getElementById("visibleCount").textContent = leads.length;
             document.getElementById("hotCount").textContent = leads.filter((lead) => lead.prioridade === "hot").length;
-            document.getElementById("followUpCount").textContent = leads.filter((lead) => lead.stage === "done").length;
-            document.getElementById("humanCount").textContent = leads.filter((lead) => lead.stage === "specialist").length;
+            document.getElementById("specialistCount").textContent = leads.filter((lead) => lead.stage === "specialist").length;
+            document.getElementById("doneCount").textContent = leads.filter((lead) => lead.stage === "done").length;
             document.getElementById("billCount").textContent = leads.filter((lead) => lead.contaLuz !== "Nao informado").length;
             document.getElementById("boardSummary").textContent = `${leads.length} leads visiveis`;
             document.getElementById("lastUpdatedLabel").textContent = `Atualizado ${relativeTime(state.lastUpdatedAt.toISOString())}`;
@@ -1221,23 +1460,17 @@
             if (lead) state.selectedLeadId = lead.id;
 
             updateHeader(leads);
-            renderMetrics(leads);
+            metricCards(leads);
             renderBoard(leads);
             renderDetails(lead);
+
+            document.querySelectorAll("[data-view]").forEach((button) => {
+                button.classList.toggle("active", button.dataset.view === state.viewMode);
+            });
         }
 
         document.getElementById("searchInput").addEventListener("input", (event) => {
             state.filters.search = event.target.value.trim().toLowerCase();
-            render();
-        });
-
-        document.getElementById("stageFilter").addEventListener("change", (event) => {
-            state.filters.stage = event.target.value;
-            render();
-        });
-
-        document.getElementById("sourceFilter").addEventListener("change", (event) => {
-            state.filters.source = event.target.value;
             render();
         });
 
@@ -1246,9 +1479,32 @@
             render();
         });
 
+        document.getElementById("sourceFilter").addEventListener("change", (event) => {
+            state.filters.source = event.target.value;
+            render();
+        });
+
+        document.getElementById("stageFilter").addEventListener("change", (event) => {
+            state.filters.stage = event.target.value;
+            render();
+        });
+
+        document.getElementById("ownerFilter").addEventListener("change", (event) => {
+            state.filters.owner = event.target.value;
+            render();
+        });
+
+        document.querySelectorAll("[data-view]").forEach((button) => {
+            button.addEventListener("click", () => {
+                state.viewMode = button.dataset.view;
+                render();
+            });
+        });
+
         document.getElementById("refreshButton").addEventListener("click", loadLeads);
         document.getElementById("seedButton").addEventListener("click", seedLead);
 
+        populateFilters();
         loadLeads();
     </script>
 </body>
