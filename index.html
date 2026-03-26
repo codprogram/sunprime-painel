@@ -28,6 +28,27 @@ function testeLead() {
       cidade: "Recife",
       status: "novo"
     })
+  })
+  .then(function(res) {
+    return res.json();
+  })
+  .then(function(data) {
+    console.log("✅ Enviado:", data);
+  })
+  .catch(function(err) {
+    console.error("❌ Erro:", err);
+  });
+}
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      nome: "Cliente Teste",
+      telefone: "81999999999",
+      cidade: "Recife",
+      status: "novo"
+    })
   });
 }
 
