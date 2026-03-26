@@ -38,6 +38,7 @@
       margin-bottom: 12px;
       border-radius: 10px;
       border-left: 6px solid #334155;
+      transition: all 0.2s ease;
     }
 
     .tempo {
@@ -59,8 +60,9 @@
 
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
+let dadosCache = [];
 
-// CRIA LEAD
+// GERAR LEAD
 function testeLead() {
   fetch(API, {
     method: "POST",
@@ -72,19 +74,19 @@ function testeLead() {
       status: "novo",
       criadoEm: new Date().toISOString()
     })
-  }).then(carregar);
+  }).then(() => carregar());
 }
 
-// ATUALIZA STATUS
+// ATUALIZAR STATUS
 function atualizar(id, status) {
   fetch(API, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ id, status })
-  }).then(carregar);
+  }).then(() => carregar());
 }
 
-// CALCULAR TEMPO
+// TEMPO
 function tempoDecorrido(data) {
   const agora = new Date();
   const criado = new Date(data);
@@ -95,53 +97,77 @@ function tempoDecorrido(data) {
   return Math.floor(diff/3600) + " h atrás";
 }
 
-// CARREGAR
+// RENDERIZAR
+function renderizar(dados) {
+  const lista = document.getElementById("lista");
+
+  dados.forEach(d => {
+
+    let card = document.getElementById("lead-" + d.id);
+
+    let cor = "#334155";
+    if (d.status === "novo") cor = "#f59e0b";
+    if (d.status === "em atendimento") cor = "#3b82f6";
+    if (d.status === "finalizado") cor = "#10b981";
+
+    const tempo = d.criadoEm ? tempoDecorrido(d.criadoEm) : "agora";
+
+    if (!card) {
+      card = document.createElement("div");
+      card.className = "card";
+      card.id = "lead-" + d.id;
+
+      card.innerHTML = `
+        <strong>👤 ${d.nome || "Cliente"}</strong><br>
+        📱 ${d.telefone || ""}<br>
+        📍 ${d.cidade || ""}<br>
+        📊 Status: ${d.status || "novo"}<br>
+
+        <div class="tempo" id="tempo-${d.id}">⏱ ${tempo}</div><br>
+
+        <button class="atendimento" onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
+        <button class="finalizado" onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
+      `;
+
+      lista.prepend(card); // novos no topo
+    }
+
+    // atualizar visual
+    card.style.borderLeft = "6px solid " + cor;
+
+    const tempoEl = document.getElementById("tempo-" + d.id);
+    if (tempoEl) tempoEl.innerText = "⏱ " + tempo;
+  });
+}
+
+// CARREGAR DADOS
 function carregar() {
   fetch(API)
     .then(res => res.json())
     .then(dados => {
-
-      const lista = document.getElementById("lista");
-      lista.innerHTML = "";
+      dadosCache = dados;
 
       document.getElementById("contador").innerText =
         "Total de Leads: " + dados.length;
 
-      dados.forEach(d => {
-
-        let cor = "#334155";
-        if (d.status === "novo") cor = "#f59e0b";
-        if (d.status === "em atendimento") cor = "#3b82f6";
-        if (d.status === "finalizado") cor = "#10b981";
-
-        const tempo = d.criadoEm ? tempoDecorrido(d.criadoEm) : "agora";
-
-        const div = document.createElement("div");
-        div.className = "card";
-        div.style.borderLeft = "6px solid " + cor;
-
-        div.innerHTML = `
-          <strong>👤 ${d.nome || "Cliente"}</strong><br>
-          📱 ${d.telefone || ""}<br>
-          📍 ${d.cidade || ""}<br>
-          📊 Status: ${d.status || "novo"}<br>
-
-          <div class="tempo">⏱ ${tempo}</div><br>
-
-          <button class="atendimento" onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
-          <button class="finalizado" onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
-        `;
-
-        lista.appendChild(div);
-      });
-
+      renderizar(dados);
     });
 }
 
-// AUTO UPDATE
-setInterval(carregar, 2000);
-carregar();
+// ATUALIZA TEMPO SEM RECARREGAR API
+setInterval(() => {
+  dadosCache.forEach(d => {
+    const tempoEl = document.getElementById("tempo-" + d.id);
+    if (tempoEl && d.criadoEm) {
+      tempoEl.innerText = "⏱ " + tempoDecorrido(d.criadoEm);
+    }
+  });
+}, 1000);
 
+// ATUALIZA API (mais leve agora)
+setInterval(carregar, 5000);
+
+carregar();
 </script>
 
 </body>
