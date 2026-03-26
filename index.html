@@ -14,6 +14,7 @@
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
 
+// BOTÃO TESTE
 function testeLead() {
   alert("clicou");
 
@@ -33,53 +34,46 @@ function testeLead() {
     return res.json();
   })
   .then(function(data) {
-    console.log("✅ Enviado:", data);
+    alert("✅ Lead enviado!");
+    carregar(); // atualiza lista na hora
   })
   .catch(function(err) {
-    console.error("❌ Erro:", err);
+    alert("❌ Erro ao enviar");
   });
 }
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      nome: "Cliente Teste",
-      telefone: "81999999999",
-      cidade: "Recife",
-      status: "novo"
+
+// CARREGAR LISTA
+function carregar() {
+  fetch(API)
+    .then(function(res) {
+      return res.json();
     })
-  });
-}
+    .then(function(dados) {
+      const lista = document.getElementById('lista');
+      lista.innerHTML = '';
 
-async function carregar() {
-  try {
-    const res = await fetch(API);
-    const dados = await res.json();
+      dados.forEach(function(d) {
+        const div = document.createElement('div');
 
-    const lista = document.getElementById('lista');
-    lista.innerHTML = '';
+        div.innerHTML =
+          "<hr>" +
+          "👤 " + (d.nome || "Cliente") + "<br>" +
+          "📱 " + (d.telefone || "") + "<br>" +
+          "📍 " + (d.cidade || "") + "<br>" +
+          "📊 Status: " + (d.status || "novo") + "<br>";
 
-    dados.forEach(function(d) {
-      const div = document.createElement('div');
-
-      div.innerHTML =
-        "<hr>" +
-        "👤 " + (d.nome || "Cliente") + "<br>" +
-        "📱 " + (d.telefone || "") + "<br>" +
-        "📍 " + (d.cidade || "") + "<br>" +
-        "📊 Status: " + (d.status || "novo") + "<br>";
-
-      lista.appendChild(div);
+        lista.appendChild(div);
+      });
+    })
+    .catch(function(err) {
+      alert("Erro ao carregar dados");
     });
-
-  } catch (e) {
-    console.error("Erro:", e);
-  }
 }
 
+// ATUALIZA AUTOMÁTICO
 setInterval(carregar, 2000);
 carregar();
+
 </script>
 
 </body>
