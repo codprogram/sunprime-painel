@@ -1,52 +1,142 @@
-let dados = [];
+const TABLE_NAME = process.env.SUPABASE_LEADS_TABLE || "leads";
 
-function upsertLead(payload) {
-    const id = String(payload.id || Date.now());
-    const currentIndex = dados.findIndex((item) => String(item.id) === id);
-    const currentItem = currentIndex >= 0 ? dados[currentIndex] : null;
-
-    const nextItem = {
-        id,
-        nome: payload.nome || currentItem?.nome || "Lead sem nome",
-        telefone: payload.telefone || currentItem?.telefone || payload.telefoneContato || "Nao informado",
-        telefoneContato: payload.telefoneContato || currentItem?.telefoneContato || payload.telefone || "Nao informado",
-        cidade: payload.cidade || currentItem?.cidade || "Nao informada",
-        contaLuz: payload.contaLuz ?? currentItem?.contaLuz ?? null,
-        tipoImovel: payload.tipoImovel ?? currentItem?.tipoImovel ?? null,
-        motivo: payload.motivo || currentItem?.motivo || "Sem motivo definido",
-        status: payload.status || currentItem?.status || "AGUARDANDO_OPCAO",
-        botEstado: payload.botEstado || currentItem?.botEstado || payload.status || "AGUARDANDO_OPCAO",
-        prioridade: payload.prioridade || currentItem?.prioridade || "morno",
-        origem: payload.origem || currentItem?.origem || ["whatsapp"],
-        resumo: payload.resumo || currentItem?.resumo || "Sem resumo operacional registrado.",
-        timeline: payload.timeline || currentItem?.timeline || ["Lead recebido no pipeline do bot."],
-        criadoEm: currentItem?.criadoEm || payload.criadoEm || new Date().toISOString(),
-        ultimoEventoEm: payload.ultimoEventoEm || new Date().toISOString()
-    };
-
-    if (currentIndex >= 0) {
-        dados[currentIndex] = nextItem;
-    } else {
-        dados.unshift(nextItem);
-    }
-
-    return nextItem;
+function jsonResponse(res, status, payload) {
+    res.status(status).setHeader("Content-Type", "application/json");
+    return res.end(JSON.stringify(payload));
 }
 
-export default function handler(req, res) {
-    if (req.method === "GET") {
-        return res.status(200).json(dados);
+function getSupabaseConfig() {
+    const url = process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceRoleKey) {
+        return null;
     }
 
-    if (req.method === "POST") {
-        const item = upsertLead(req.body || {});
-        return res.status(200).json({ ok: true, item });
+    return {
+        restUrl: `${url.replace(/\/$/, "")}/rest/v1/${TABLE_NAME}`,
+        headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+        }
+    };
+}
+
+function normalizeLead(payload, currentLead = {}) {
+    const id = String(payload.id || currentLead.id || Date.now());
+    const now = new Date().toISOString();
+
+    return {
+        id,
+        nome: payload.nome || currentLead.nome || "Lead sem nome",
+        telefone: payload.telefone || currentLead.telefone || payload.telefoneContato || "Nao informado",
+        telefoneContato: payload.telefoneContato || currentLead.telefoneContato || payload.telefone || "Nao informado",
+        cidade: payload.cidade || currentLead.cidade || "Nao informada",
+        contaLuz: payload.contaLuz ?? payload.conta ?? currentLead.contaLuz ?? "Nao informado",
+        tipoImovel: payload.tipoImovel ?? currentLead.tipoImovel ?? "Nao informado",
+        motivo: payload.motivo || currentLead.motivo || "Sem motivo definido",
+        status: payload.status || currentLead.status || "AGUARDANDO_OPCAO",
+        botEstado: payload.botEstado || currentLead.botEstado || payload.status || "AGUARDANDO_OPCAO",
+        prioridade: payload.prioridade || currentLead.prioridade || "warm",
+        origem: Array.isArray(payload.origem) ? payload.origem : (currentLead.origem || ["whatsapp"]),
+        resumo: payload.resumo || currentLead.resumo || "Sem resumo operacional registrado.",
+        timeline: Array.isArray(payload.timeline) ? payload.timeline : (currentLead.timeline || ["Lead recebido no pipeline do bot."]),
+        owner: payload.owner || currentLead.owner || "Sem dono",
+        note: payload.note ?? currentLead.note ?? "",
+        sourceStatus: payload.sourceStatus || currentLead.sourceStatus || "Ativo",
+        stage: payload.stage || currentLead.stage || "new",
+        criadoEm: currentLead.criadoEm || payload.criadoEm || now,
+        ultimoEventoEm: payload.ultimoEventoEm || now,
+        updatedAt: now
+    };
+}
+
+async function supabaseFetch(path = "", options = {}) {
+    const config = getSupabaseConfig();
+
+    if (!config) {
+        throw new Error("Supabase nao configurado");
     }
 
-    if (req.method === "PUT") {
-        const item = upsertLead(req.body || {});
-        return res.status(200).json({ ok: true, item });
+    const response = await fetch(`${config.restUrl}${path}`, {
+        ...options,
+        headers: {
+            ...config.headers,
+            ...(options.headers || {})
+        }
+    });
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : null;
+
+    if (!response.ok) {
+        throw new Error(data?.message || data?.error || "Erro ao acessar Supabase");
     }
 
-    return res.status(405).json({ ok: false, error: "Method not allowed" });
+    return data;
+}
+
+async function getLeadById(id) {
+    const data = await supabaseFetch(`?id=eq.${encodeURIComponent(id)}&limit=1`);
+    return Array.isArray(data) ? data[0] : null;
+}
+
+async function listLeads() {
+    return supabaseFetch("?select=*&order=updatedAt.desc");
+}
+
+async function upsertLead(payload) {
+    const id = String(payload.id || Date.now());
+    const currentLead = await getLeadById(id);
+    const normalizedLead = normalizeLead({ ...payload, id }, currentLead || {});
+
+    const data = await supabaseFetch("?on_conflict=id", {
+        method: "POST",
+        body: JSON.stringify([normalizedLead]),
+        headers: {
+            Prefer: "resolution=merge-duplicates,return=representation"
+        }
+    });
+
+    return Array.isArray(data) ? data[0] : normalizedLead;
+}
+
+export default async function handler(req, res) {
+    if (req.method === "OPTIONS") {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        return res.status(204).end();
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+
+    try {
+        if (!getSupabaseConfig()) {
+            return jsonResponse(res, 503, {
+                ok: false,
+                error: "Supabase nao configurado",
+                missing: [
+                    "SUPABASE_URL",
+                    "SUPABASE_SERVICE_ROLE_KEY"
+                ]
+            });
+        }
+
+        if (req.method === "GET") {
+            const items = await listLeads();
+            return jsonResponse(res, 200, { ok: true, items });
+        }
+
+        if (req.method === "POST" || req.method === "PUT") {
+            const item = await upsertLead(req.body || {});
+            return jsonResponse(res, 200, { ok: true, item });
+        }
+
+        return jsonResponse(res, 405, { ok: false, error: "Method not allowed" });
+    } catch (error) {
+        return jsonResponse(res, 500, { ok: false, error: error.message });
+    }
 }

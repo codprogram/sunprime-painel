@@ -1008,7 +1008,8 @@
 
     <script>
         const API_URL = "/api/pedidos";
-        const STORAGE_KEY = "sunprime-panel-v2";
+        const UI_STORAGE_KEY = "sunprime-panel-ui";
+        const SYNC_INTERVAL_MS = 15000;
 
         const stageDefinitions = [
             { key: "new", label: "Novos", dot: "#d28a16", statusTone: "status-pending" },
@@ -1020,7 +1021,7 @@
 
         const owners = ["Sem dono", "Marcos", "Comercial 1", "Comercial 2", "Especialista"];
 
-        const mockLeads = [
+        const fallbackLeads = [
             {
                 id: "lead-001",
                 nome: "Lead Residencial Recife",
@@ -1043,7 +1044,8 @@
                 ],
                 owner: "Marcos",
                 note: "Retornar ainda hoje.",
-                sourceStatus: "Ativo"
+                sourceStatus: "Ativo",
+                stage: "budget"
             },
             {
                 id: "lead-002",
@@ -1067,107 +1069,15 @@
                 ],
                 owner: "Especialista",
                 note: "Confirmar telefone alternativo.",
-                sourceStatus: "Fila humana"
-            },
-            {
-                id: "lead-003",
-                nome: "Lead Comercial Caruaru",
-                telefone: "5581987329910",
-                telefoneContato: "(81) 98732-9910",
-                cidade: "Caruaru - PE",
-                contaLuz: "Enviou foto da fatura",
-                tipoImovel: "Comercio",
-                motivo: "Solicitou orcamento de energia solar",
-                botEstado: "FINALIZADO",
-                prioridade: "warm",
-                origem: ["whatsapp", "csv"],
-                criadoEm: new Date(Date.now() - 4.5 * 60 * 60 * 1000).toISOString(),
-                ultimoEventoEm: new Date(Date.now() - 48 * 60 * 1000).toISOString(),
-                resumo: "Lead qualificado e salvo. Pronto para abordagem comercial.",
-                timeline: [
-                    "Concluiu cadastro de orcamento.",
-                    "Bot encerrou atendimento.",
-                    "Aguardando abordagem da equipe."
-                ],
-                owner: "Comercial 1",
-                note: "Priorizar proposta comercial.",
-                sourceStatus: "Pronto"
-            },
-            {
-                id: "lead-004",
-                nome: "Lead Financiamento Olinda",
-                telefone: "5581997654433",
-                telefoneContato: "(81) 99765-4433",
-                cidade: "Olinda - PE",
-                contaLuz: "Nao informado",
-                tipoImovel: "Nao informado",
-                motivo: "Pergunta sobre financiamento",
-                botEstado: "AGUARDANDO_DUVIDA",
-                prioridade: "warm",
-                origem: ["whatsapp"],
-                criadoEm: new Date(Date.now() - 95 * 60 * 1000).toISOString(),
-                ultimoEventoEm: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-                resumo: "Entrou na trilha de duvidas e precisa de orientacao financeira objetiva.",
-                timeline: [
-                    "Selecionou duvidas tecnicas.",
-                    "Pergunta focada em parcelamento e retorno."
-                ],
-                owner: "Sem dono",
-                note: "",
-                sourceStatus: "Em conversa"
-            },
-            {
-                id: "lead-005",
-                nome: "Lead Menu Moreno",
-                telefone: "5581988441020",
-                telefoneContato: "(81) 98844-1020",
-                cidade: "Moreno - PE",
-                contaLuz: "R$ 310",
-                tipoImovel: "Residencia",
-                motivo: "Retornou ao menu e ainda nao escolheu opcao",
-                botEstado: "AGUARDANDO_OPCAO",
-                prioridade: "cold",
-                origem: ["whatsapp"],
-                criadoEm: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-                ultimoEventoEm: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-                resumo: "Lead ainda frio, mas ja tem consumo interessante para nova tentativa.",
-                timeline: [
-                    "Retornou ao menu principal.",
-                    "Aguardando nova escolha."
-                ],
-                owner: "Sem dono",
-                note: "Testar reativacao amanha.",
-                sourceStatus: "Novo"
-            },
-            {
-                id: "lead-006",
-                nome: "Lead Rural Paulista",
-                telefone: "5581999990000",
-                telefoneContato: "(81) 99999-0000",
-                cidade: "Paulista - PE",
-                contaLuz: "R$ 680",
-                tipoImovel: "Zona Rural",
-                motivo: "Quer reduzir custo operacional",
-                botEstado: "ORCAMENTO_AGUARDANDO_CIDADE",
-                prioridade: "hot",
-                origem: ["csv"],
-                criadoEm: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-                ultimoEventoEm: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-                resumo: "Ticket alto, perfil interessante para abordagem consultiva.",
-                timeline: [
-                    "Lead importado para qualificacao.",
-                    "Conta alta indica potencial de economia forte."
-                ],
-                owner: "Comercial 2",
-                note: "Montar proposta premium.",
-                sourceStatus: "Qualificar"
+                sourceStatus: "Fila humana",
+                stage: "specialist"
             }
         ];
 
         const state = {
             leads: [],
             selectedLeadId: null,
-            viewMode: "kanban",
+            viewMode: readUISettings().viewMode || "kanban",
             filters: {
                 search: "",
                 stage: "all",
@@ -1175,8 +1085,24 @@
                 owner: "all",
                 source: "all"
             },
-            lastUpdatedAt: new Date()
+            lastUpdatedAt: new Date(),
+            syncTimer: null,
+            isFallbackMode: false
         };
+
+        function readUISettings() {
+            try {
+                return JSON.parse(localStorage.getItem(UI_STORAGE_KEY) || "{}");
+            } catch (_) {
+                return {};
+            }
+        }
+
+        function writeUISettings() {
+            localStorage.setItem(UI_STORAGE_KEY, JSON.stringify({
+                viewMode: state.viewMode
+            }));
+        }
 
         function deriveStage(botEstado) {
             if (!botEstado) return "new";
@@ -1187,30 +1113,7 @@
             return "new";
         }
 
-        function readLocalStore() {
-            try {
-                return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-            } catch (_) {
-                return {};
-            }
-        }
-
-        function writeLocalStore() {
-            const payload = {};
-
-            state.leads.forEach((lead) => {
-                payload[lead.id] = {
-                    owner: lead.owner,
-                    note: lead.note,
-                    stage: lead.stage
-                };
-            });
-
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        }
-
         function normalizeLead(rawLead) {
-            const saved = readLocalStore()[rawLead.id] || {};
             const botEstado = rawLead.botEstado || rawLead.status || "AGUARDANDO_OPCAO";
 
             return {
@@ -1228,23 +1131,46 @@
                 criadoEm: rawLead.criadoEm || new Date().toISOString(),
                 ultimoEventoEm: rawLead.ultimoEventoEm || rawLead.criadoEm || new Date().toISOString(),
                 resumo: rawLead.resumo || "Sem resumo operacional registrado.",
-                timeline: rawLead.timeline || ["Lead recebido no pipeline."],
-                owner: saved.owner || rawLead.owner || "Sem dono",
-                note: saved.note ?? rawLead.note ?? "",
+                timeline: Array.isArray(rawLead.timeline) ? rawLead.timeline : ["Lead recebido no pipeline."],
+                owner: rawLead.owner || "Sem dono",
+                note: rawLead.note || "",
                 sourceStatus: rawLead.sourceStatus || "Ativo",
-                stage: saved.stage || deriveStage(botEstado)
+                stage: rawLead.stage || deriveStage(botEstado)
             };
         }
 
-        async function loadLeads() {
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error("Falha ao buscar API");
+        async function apiRequest(method, payload) {
+            const response = await fetch(API_URL, {
+                method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: payload ? JSON.stringify(payload) : undefined
+            });
 
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                throw new Error(data.error || "Erro ao salvar lead");
+            }
+
+            return data;
+        }
+
+        async function loadLeads({ silent = false } = {}) {
+            try {
+                const response = await fetch(API_URL, { cache: "no-store" });
                 const data = await response.json();
-                state.leads = Array.isArray(data) && data.length ? data.map(normalizeLead) : mockLeads.map(normalizeLead);
+
+                if (!response.ok || !data.ok) {
+                    throw new Error(data.error || "Falha ao buscar API");
+                }
+
+                state.leads = (data.items || []).map(normalizeLead);
+                state.isFallbackMode = false;
             } catch (_) {
-                state.leads = mockLeads.map(normalizeLead);
+                state.leads = fallbackLeads.map(normalizeLead);
+                state.isFallbackMode = true;
             }
 
             if (!state.selectedLeadId && state.leads.length) {
@@ -1252,8 +1178,12 @@
             }
 
             state.lastUpdatedAt = new Date();
-            writeLocalStore();
-            render();
+
+            if (!silent) {
+                render();
+            } else {
+                render();
+            }
         }
 
         function relativeTime(isoDate) {
@@ -1500,7 +1430,12 @@
             });
         }
 
-        function updateLeadStage(leadId, stage) {
+        async function persistLead(lead) {
+            const data = await apiRequest("PUT", lead);
+            return normalizeLead(data.item);
+        }
+
+        async function updateLeadStage(leadId, stage) {
             const botStateMap = {
                 new: "AGUARDANDO_OPCAO",
                 budget: "ORCAMENTO_AGUARDANDO_NOME",
@@ -1509,35 +1444,52 @@
                 done: "FINALIZADO"
             };
 
-            state.leads = state.leads.map((lead) => lead.id === leadId ? {
-                ...lead,
+            const currentLead = state.leads.find((lead) => lead.id === leadId);
+            if (!currentLead) return;
+
+            const nextLead = {
+                ...currentLead,
                 stage,
                 botEstado: botStateMap[stage],
                 ultimoEventoEm: new Date().toISOString(),
-                timeline: [`Etapa alterada manualmente para ${stageLabel(stage)}.`, ...lead.timeline]
-            } : lead);
+                timeline: [`Etapa alterada manualmente para ${stageLabel(stage)}.`, ...currentLead.timeline]
+            };
 
+            await replaceLead(nextLead);
+        }
+
+        async function updateLeadOwner(leadId, owner) {
+            const currentLead = state.leads.find((lead) => lead.id === leadId);
+            if (!currentLead) return;
+
+            await replaceLead({
+                ...currentLead,
+                owner,
+                ultimoEventoEm: new Date().toISOString()
+            });
+        }
+
+        async function updateLeadNote(leadId, note) {
+            const currentLead = state.leads.find((lead) => lead.id === leadId);
+            if (!currentLead) return;
+
+            await replaceLead({
+                ...currentLead,
+                note,
+                ultimoEventoEm: new Date().toISOString()
+            });
+        }
+
+        async function replaceLead(nextLead) {
+            const savedLead = await persistLead(nextLead);
+
+            state.leads = state.leads.map((lead) => lead.id === savedLead.id ? savedLead : lead);
             state.lastUpdatedAt = new Date();
-            writeLocalStore();
             render();
         }
 
-        function updateLeadOwner(leadId, owner) {
-            state.leads = state.leads.map((lead) => lead.id === leadId ? { ...lead, owner } : lead);
-            state.lastUpdatedAt = new Date();
-            writeLocalStore();
-            render();
-        }
-
-        function updateLeadNote(leadId, note) {
-            state.leads = state.leads.map((lead) => lead.id === leadId ? { ...lead, note } : lead);
-            state.lastUpdatedAt = new Date();
-            writeLocalStore();
-            render();
-        }
-
-        function seedLead() {
-            const lead = normalizeLead({
+        async function seedLead() {
+            const lead = {
                 id: `lead-${Date.now()}`,
                 nome: "Novo Lead Simulado",
                 telefone: "5581999000000",
@@ -1559,12 +1511,15 @@
                 owner: "Sem dono",
                 note: "",
                 sourceStatus: "Novo"
-            });
+            };
 
-            state.leads = [lead, ...state.leads];
-            state.selectedLeadId = lead.id;
+            const data = await apiRequest("POST", lead);
+            const savedLead = normalizeLead(data.item);
+
+            state.leads = [savedLead, ...state.leads.filter((item) => item.id !== savedLead.id)];
+            state.selectedLeadId = savedLead.id;
             state.lastUpdatedAt = new Date();
-            writeLocalStore();
+            state.isFallbackMode = false;
             render();
         }
 
@@ -1587,7 +1542,9 @@
             document.getElementById("doneCount").textContent = leads.filter((lead) => lead.stage === "done").length;
             document.getElementById("billCount").textContent = leads.filter((lead) => lead.contaLuz !== "Nao informado").length;
             document.getElementById("boardSummary").textContent = `${leads.length} leads visiveis`;
-            document.getElementById("lastUpdatedLabel").textContent = `Atualizado ${relativeTime(state.lastUpdatedAt.toISOString())}`;
+            document.getElementById("lastUpdatedLabel").textContent = state.isFallbackMode
+                ? "Modo local temporario: configure Supabase"
+                : `Atualizado ${relativeTime(state.lastUpdatedAt.toISOString())}`;
         }
 
         function render() {
@@ -1633,6 +1590,7 @@
         document.querySelectorAll("[data-view]").forEach((button) => {
             button.addEventListener("click", () => {
                 state.viewMode = button.dataset.view;
+                writeUISettings();
                 render();
             });
         });
@@ -1642,6 +1600,10 @@
 
         populateFilters();
         loadLeads();
+
+        state.syncTimer = window.setInterval(() => {
+            loadLeads({ silent: true });
+        }, SYNC_INTERVAL_MS);
     </script>
 </body>
 </html>
