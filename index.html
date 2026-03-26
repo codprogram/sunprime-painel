@@ -17,10 +17,7 @@ const API = "https://sunprime-painel.vercel.app/api/pedidos";
 function testeLead() {
   alert("clicou");
 
-  function testeLead() {
-  alert("clicou");
-
-  fetch("https://sunprime-painel.vercel.app/api/pedidos", {
+  fetch(API, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -36,10 +33,10 @@ function testeLead() {
     return res.json();
   })
   .then(function(data) {
-    alert("✅ Lead enviado com sucesso!");
+    console.log("✅ Enviado:", data);
   })
   .catch(function(err) {
-    alert("❌ Erro ao enviar");
+    console.error("❌ Erro:", err);
   });
 }
     method: "POST",
