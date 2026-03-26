@@ -7,6 +7,8 @@
 
 <h2>⚡ Painel de Leads Sun Prime</h2>
 
+<h3 id="contador">Total de Leads: 0</h3>
+
 <button onclick="testeLead()">➕ Gerar Lead de Teste</button>
 
 <div id="lista"></div>
@@ -14,10 +16,8 @@
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
 
-// BOTÃO TESTE
+// GERAR LEAD DE TESTE
 function testeLead() {
-  alert("clicou");
-
   fetch(API, {
     method: "POST",
     headers: {
@@ -33,12 +33,25 @@ function testeLead() {
   .then(function(res) {
     return res.json();
   })
-  .then(function(data) {
-    alert("✅ Lead enviado!");
-    carregar(); // atualiza lista na hora
+  .then(function() {
+    carregar();
   })
-  .catch(function(err) {
-    alert("❌ Erro ao enviar");
+  .catch(function() {
+    alert("Erro ao enviar");
+  });
+}
+
+// ATUALIZAR STATUS
+function atualizar(id, status) {
+  fetch(API, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ id, status })
+  })
+  .then(function() {
+    carregar();
   });
 }
 
@@ -49,23 +62,38 @@ function carregar() {
       return res.json();
     })
     .then(function(dados) {
+
       const lista = document.getElementById('lista');
       lista.innerHTML = '';
 
+      document.getElementById("contador").innerText =
+        "Total de Leads: " + dados.length;
+
       dados.forEach(function(d) {
+
+        let cor = "#ccc";
+        if (d.status === "novo") cor = "orange";
+        if (d.status === "em atendimento") cor = "blue";
+        if (d.status === "finalizado") cor = "green";
+
         const div = document.createElement('div');
 
         div.innerHTML =
-          "<hr>" +
-          "👤 " + (d.nome || "Cliente") + "<br>" +
+          "<div style='border-left: 6px solid " + cor + "; padding:10px; margin:10px 0; background:#f9f9f9'>" +
+          "<strong>👤 " + (d.nome || "Cliente") + "</strong><br>" +
           "📱 " + (d.telefone || "") + "<br>" +
           "📍 " + (d.cidade || "") + "<br>" +
-          "📊 Status: " + (d.status || "novo") + "<br>";
+          "📊 Status: " + (d.status || "novo") + "<br><br>" +
+
+          "<button onclick='atualizar(" + d.id + ", \"em atendimento\")'>Atender</button> " +
+          "<button onclick='atualizar(" + d.id + ", \"finalizado\")'>Finalizar</button>" +
+          "</div>";
 
         lista.appendChild(div);
       });
+
     })
-    .catch(function(err) {
+    .catch(function() {
       alert("Erro ao carregar dados");
     });
 }
