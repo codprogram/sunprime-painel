@@ -78,6 +78,9 @@ const API="https://sunprime-painel.vercel.app/api/pedidos";
 let ids=new Set();
 const elementos={};
 
+// 🔥 ESTADO LOCAL (CORREÇÃO PRINCIPAL)
+const estadoLocal = {};
+
 // tempo
 function tempo(data){
  const s=(Date.now()-new Date(data))/1000;
@@ -108,13 +111,16 @@ function testeLead(){
  });
 }
 
-// atualizar backend
+// 🔥 atualizar com estado local
 function atualizar(id,status){
- fetch(API,{
-  method:"PUT",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({id,status})
- });
+
+  estadoLocal[id] = status;
+
+  fetch(API,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id,status})
+  });
 }
 
 // SORTABLE
@@ -140,7 +146,7 @@ function iniciarDrag(){
 
 }
 
-// render sem piscar
+// render sem bug
 function render(dados){
 
  let total=dados.length;
@@ -149,13 +155,15 @@ function render(dados){
 
  dados.forEach(d=>{
 
+  const status = estadoLocal[d.id] || d.status;
+
   if(!ids.has(d.id)){
     ids.add(d.id);
     document.getElementById("som").play();
   }
 
-  if(d.status==="em atendimento") att++;
-  if(d.status==="finalizado") fin++;
+  if(status==="em atendimento") att++;
+  if(status==="finalizado") fin++;
 
   let card=elementos[d.id];
 
@@ -172,7 +180,7 @@ function render(dados){
   card.innerHTML=`
     <div class="flex justify-between">
       <strong>${d.nome}</strong>
-      <span class="text-xs opacity-70">${d.status}</span>
+      <span class="text-xs opacity-70">${status}</span>
     </div>
 
     <div class="text-sm opacity-80">
@@ -185,8 +193,8 @@ function render(dados){
     </div>
   `;
 
-  if(d.status==="novo") novo.appendChild(card);
-  else if(d.status==="em atendimento") atendimento.appendChild(card);
+  if(status==="novo") novo.appendChild(card);
+  else if(status==="em atendimento") atendimento.appendChild(card);
   else finalizado.appendChild(card);
 
  });
