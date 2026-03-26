@@ -13,10 +13,7 @@
 
 <style>
 body { font-family: 'Inter', sans-serif; }
-
-.sortable-ghost {
-  opacity: 0.4;
-}
+.sortable-ghost { opacity: 0.4; }
 </style>
 </head>
 
@@ -75,11 +72,30 @@ body { font-family: 'Inter', sans-serif; }
 <script>
 const API="https://sunprime-painel.vercel.app/api/pedidos";
 
-let ids=new Set();
-const elementos={};
+// 🔥 WEBSOCKET
+const socket = new WebSocket("ws://localhost:3001");
 
-// 🔥 ESTADO LOCAL (CORREÇÃO PRINCIPAL)
+socket.onopen = () => {
+  console.log("🔥 Conectado ao WebSocket");
+};
+
+const cache = {};
 const estadoLocal = {};
+const elementos = {};
+let ids = new Set();
+
+// receber tempo real
+socket.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  estadoLocal[data.id] = data.status;
+
+  if(cache[data.id]){
+    cache[data.id].status = data.status;
+  }
+
+  render(Object.values(cache));
+};
 
 // tempo
 function tempo(data){
@@ -111,7 +127,7 @@ function testeLead(){
  });
 }
 
-// 🔥 atualizar com estado local
+// atualizar
 function atualizar(id,status){
 
   estadoLocal[id] = status;
@@ -121,6 +137,9 @@ function atualizar(id,status){
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({id,status})
   });
+
+  // 🔥 envia tempo real
+  socket.send(JSON.stringify({id,status}));
 }
 
 // SORTABLE
@@ -146,7 +165,7 @@ function iniciarDrag(){
 
 }
 
-// render sem bug
+// render
 function render(dados){
 
  let total=dados.length;
@@ -154,6 +173,8 @@ function render(dados){
  let fin=0;
 
  dados.forEach(d=>{
+
+  cache[d.id] = d;
 
   const status = estadoLocal[d.id] || d.status;
 
@@ -204,12 +225,11 @@ function render(dados){
  document.getElementById("fin").innerText=fin;
 }
 
-// loop
+// carregar inicial
 function carregar(){
  fetch(API).then(r=>r.json()).then(render);
 }
 
-setInterval(carregar,3000);
 carregar();
 iniciarDrag();
 </script>
