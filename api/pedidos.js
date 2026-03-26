@@ -1,5 +1,14 @@
 const TABLE_NAME = process.env.SUPABASE_LEADS_TABLE || "leads";
-const RESET_MASTER_KEY = process.env.MASTER_RESET_KEY || process.env.RESETKEY || process.env.ADMIN_RESET_KEY;
+
+function getResetMasterKey() {
+    const directKey = process.env.MASTER_RESET_KEY || process.env.RESETKEY || process.env.ADMIN_RESET_KEY;
+    if (directKey) {
+        return directKey;
+    }
+
+    const invertedEntry = Object.entries(process.env).find(([, value]) => value === "MASTER_RESET_KEY");
+    return invertedEntry ? invertedEntry[0] : null;
+}
 
 function jsonResponse(res, status, payload) {
     res.status(status).setHeader("Content-Type", "application/json");
@@ -151,12 +160,13 @@ export default async function handler(req, res) {
         if (req.method === "GET") {
             if (req.query?.action === "reset_all") {
                 const masterKey = req.query?.masterKey;
+                const resetMasterKey = getResetMasterKey();
 
-                if (!RESET_MASTER_KEY) {
+                if (!resetMasterKey) {
                     return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
                 }
 
-                if (masterKey !== RESET_MASTER_KEY) {
+                if (masterKey !== resetMasterKey) {
                     return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
                 }
 
@@ -184,11 +194,13 @@ export default async function handler(req, res) {
             const { id, scope, masterKey } = req.query || {};
 
             if (scope === "finalized") {
-                if (!RESET_MASTER_KEY) {
+                const resetMasterKey = getResetMasterKey();
+
+                if (!resetMasterKey) {
                     return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
                 }
 
-                if (masterKey !== RESET_MASTER_KEY) {
+                if (masterKey !== resetMasterKey) {
                     return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
                 }
 
@@ -200,11 +212,13 @@ export default async function handler(req, res) {
             }
 
             if (scope === "all") {
-                if (!RESET_MASTER_KEY) {
+                const resetMasterKey = getResetMasterKey();
+
+                if (!resetMasterKey) {
                     return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
                 }
 
-                if (masterKey !== RESET_MASTER_KEY) {
+                if (masterKey !== resetMasterKey) {
                     return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
                 }
 
@@ -225,12 +239,13 @@ export default async function handler(req, res) {
 
         if (req.method === "POST" && req.body?.action === "reset_finalized") {
             const masterKey = req.body?.masterKey;
+            const resetMasterKey = getResetMasterKey();
 
-            if (!RESET_MASTER_KEY) {
+            if (!resetMasterKey) {
                 return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
             }
 
-            if (masterKey !== RESET_MASTER_KEY) {
+            if (masterKey !== resetMasterKey) {
                 return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
             }
 
@@ -243,12 +258,13 @@ export default async function handler(req, res) {
 
         if (req.method === "POST" && req.body?.action === "reset_all") {
             const masterKey = req.body?.masterKey;
+            const resetMasterKey = getResetMasterKey();
 
-            if (!RESET_MASTER_KEY) {
+            if (!resetMasterKey) {
                 return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
             }
 
-            if (masterKey !== RESET_MASTER_KEY) {
+            if (masterKey !== resetMasterKey) {
                 return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
             }
 
