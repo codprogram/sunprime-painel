@@ -87,6 +87,18 @@ async function listLeads() {
     return supabaseFetch("?select=*&order=updatedAt.desc");
 }
 
+async function deleteLead(id) {
+    return supabaseFetch(`?id=eq.${encodeURIComponent(id)}`, {
+        method: "DELETE"
+    });
+}
+
+async function deleteFinalizedLeads() {
+    return supabaseFetch("?stage=eq.done", {
+        method: "DELETE"
+    });
+}
+
 async function upsertLead(payload) {
     const id = String(payload.id || Date.now());
     const currentLead = await getLeadById(id);
@@ -128,6 +140,30 @@ export default async function handler(req, res) {
         if (req.method === "GET") {
             const items = await listLeads();
             return jsonResponse(res, 200, { ok: true, items });
+        }
+
+        if (req.method === "DELETE") {
+            const { id, scope, masterKey } = req.query || {};
+
+            if (scope === "finalized") {
+                if (!process.env.MASTER_RESET_KEY) {
+                    return jsonResponse(res, 503, { ok: false, error: "MASTER_RESET_KEY nao configurada" });
+                }
+
+                if (masterKey !== process.env.MASTER_RESET_KEY) {
+                    return jsonResponse(res, 403, { ok: false, error: "Chave mestre invalida" });
+                }
+
+                await deleteFinalizedLeads();
+                return jsonResponse(res, 200, { ok: true });
+            }
+
+            if (!id) {
+                return jsonResponse(res, 400, { ok: false, error: "ID obrigatorio" });
+            }
+
+            await deleteLead(id);
+            return jsonResponse(res, 200, { ok: true });
         }
 
         if (req.method === "POST" || req.method === "PUT") {

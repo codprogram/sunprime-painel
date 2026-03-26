@@ -17,11 +17,18 @@ No projeto da Vercel, adicione:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_LEADS_TABLE`
+- `MASTER_RESET_KEY`
 
 Valor sugerido para `SUPABASE_LEADS_TABLE`:
 
 ```txt
 leads
+```
+
+Valor sugerido para `MASTER_RESET_KEY`:
+
+```txt
+crie-uma-chave-forte-so-para-admin
 ```
 
 ## 3. Redeploy

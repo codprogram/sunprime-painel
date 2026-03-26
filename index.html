@@ -149,7 +149,8 @@
         .top-actions,
         .detail-actions,
         .stage-actions,
-        .view-toggle {
+        .view-toggle,
+        .toolbar-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
@@ -184,6 +185,12 @@
         .button-secondary {
             color: var(--text);
             background: rgba(24, 34, 39, 0.06);
+        }
+
+        .button-danger {
+            color: white;
+            background: linear-gradient(135deg, #d86458 0%, #b73b30 100%);
+            box-shadow: 0 16px 28px rgba(183, 59, 48, 0.2);
         }
 
         .tag {
@@ -737,6 +744,12 @@
             line-height: 1.6;
         }
 
+        .system-status {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
         @media (max-width: 1380px) {
             .workspace {
                 grid-template-columns: minmax(0, 1.7fr) minmax(300px, 330px);
@@ -919,6 +932,7 @@
                 <div class="hero-actions">
                     <button class="button button-primary" id="refreshButton">Atualizar base</button>
                     <button class="button button-secondary" id="seedButton">Gerar lead</button>
+                    <button class="button button-secondary" id="notificationToggle">Ativar notificacoes</button>
                 </div>
                 <div class="hero-tags">
                     <span class="tag green">Fluxo comercial mapeado</span>
@@ -962,6 +976,9 @@
                             <p class="small">Filtro por texto, etapa, prioridade, responsavel e origem.</p>
                         </div>
                         <div class="top-actions">
+                            <div class="toolbar-actions">
+                                <button class="button button-secondary" id="resetDoneButton">Resetar finalizados</button>
+                            </div>
                             <div class="view-toggle">
                                 <button class="toggle-button active" data-view="kanban">Kanban</button>
                                 <button class="toggle-button" data-view="lista">Lista</button>
@@ -1048,6 +1065,8 @@
             leads: [],
             selectedLeadId: null,
             viewMode: readUISettings().viewMode || "kanban",
+            notificationsMuted: Boolean(readUISettings().notificationsMuted),
+            notificationPermission: typeof Notification !== "undefined" ? Notification.permission : "denied",
             filters: {
                 search: "",
                 stage: "all",
@@ -1057,7 +1076,8 @@
             },
             lastUpdatedAt: new Date(),
             syncTimer: null,
-            hasConnectionError: false
+            hasConnectionError: false,
+            knownLeadIds: new Set()
         };
 
         function readUISettings() {
@@ -1070,7 +1090,8 @@
 
         function writeUISettings() {
             localStorage.setItem(UI_STORAGE_KEY, JSON.stringify({
-                viewMode: state.viewMode
+                viewMode: state.viewMode,
+                notificationsMuted: state.notificationsMuted
             }));
         }
 
@@ -1136,7 +1157,9 @@
                     throw new Error(data.error || "Falha ao buscar API");
                 }
 
-                state.leads = (data.items || []).map(normalizeLead);
+                const incomingLeads = (data.items || []).map(normalizeLead);
+                notifyForNewLeads(incomingLeads);
+                state.leads = incomingLeads;
                 state.hasConnectionError = false;
             } catch (_) {
                 state.leads = [];
@@ -1162,6 +1185,19 @@
             const hours = Math.floor(minutes / 60);
             if (hours < 24) return `${hours} h atras`;
             return `${Math.floor(hours / 24)} d atras`;
+        }
+
+        function elapsedTime(isoDate) {
+            const seconds = Math.max(0, Math.floor((Date.now() - new Date(isoDate).getTime()) / 1000));
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = seconds % 60;
+
+            if (hours > 0) {
+                return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+            }
+
+            return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
         }
 
         function priorityLabel(priority) {
@@ -1248,6 +1284,7 @@
                     </div>
                     <div class="lead-footer">
                         <span>${lead.contaLuz}</span>
+                        <span>Tempo: ${elapsedTime(lead.criadoEm)}</span>
                         <span>${relativeTime(lead.ultimoEventoEm)}</span>
                     </div>
                 </button>
@@ -1275,7 +1312,7 @@
                             <div>${lead.cidade}</div>
                             <div>${lead.owner}</div>
                             <div><span class="priority-pill priority-${lead.prioridade}">${priorityLabel(lead.prioridade)}</span></div>
-                            <div>${relativeTime(lead.ultimoEventoEm)}</div>
+                            <div>${elapsedTime(lead.criadoEm)}</div>
                         </button>
                     `).join("")}
                 </div>
@@ -1374,6 +1411,9 @@
                                 </button>
                             `).join("")}
                         </div>
+                        <div class="detail-actions" style="margin-top: 12px;">
+                            <button class="button button-danger" id="deleteLeadButton">Apagar lead</button>
+                        </div>
                     </section>
 
                     <section class="details-card">
@@ -1411,6 +1451,10 @@
             document.getElementById("saveNoteButton").addEventListener("click", () => {
                 const value = document.getElementById("noteInput").value;
                 updateLeadNote(lead.id, value);
+            });
+
+            document.getElementById("deleteLeadButton").addEventListener("click", () => {
+                deleteLead(lead.id);
             });
         }
 
@@ -1507,6 +1551,105 @@
             render();
         }
 
+        async function deleteLead(leadId) {
+            const currentLead = state.leads.find((lead) => lead.id === leadId);
+            if (!currentLead) return;
+
+            const confirmed = window.confirm(`Apagar o lead "${currentLead.nome}"?`);
+            if (!confirmed) return;
+
+            const response = await fetch(`${API_URL}?id=${encodeURIComponent(leadId)}`, {
+                method: "DELETE"
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                window.alert(data.error || "Nao foi possivel apagar o lead.");
+                return;
+            }
+
+            state.leads = state.leads.filter((lead) => lead.id !== leadId);
+            state.selectedLeadId = state.leads[0]?.id || null;
+            state.lastUpdatedAt = new Date();
+            render();
+        }
+
+        async function resetFinalizedLeads() {
+            const masterKey = window.prompt("Digite a chave mestre para apagar todos os leads finalizados.");
+            if (!masterKey) return;
+
+            const response = await fetch(`${API_URL}?scope=finalized&masterKey=${encodeURIComponent(masterKey)}`, {
+                method: "DELETE"
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                window.alert(data.error || "Nao foi possivel resetar os finalizados.");
+                return;
+            }
+
+            state.leads = state.leads.filter((lead) => lead.stage !== "done");
+            state.selectedLeadId = state.leads[0]?.id || null;
+            state.lastUpdatedAt = new Date();
+            render();
+        }
+
+        function notifyForNewLeads(incomingLeads) {
+            if (!state.knownLeadIds.size) {
+                incomingLeads.forEach((lead) => state.knownLeadIds.add(lead.id));
+                return;
+            }
+
+            const newLeads = incomingLeads.filter((lead) => !state.knownLeadIds.has(lead.id));
+            incomingLeads.forEach((lead) => state.knownLeadIds.add(lead.id));
+
+            if (!newLeads.length || state.notificationsMuted) return;
+            if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+
+            newLeads.forEach((lead) => {
+                const notification = new Notification("Novo lead no painel", {
+                    body: `${lead.nome} • ${lead.cidade}`,
+                    tag: `lead-${lead.id}`
+                });
+
+                notification.onclick = () => {
+                    window.focus();
+                    state.selectedLeadId = lead.id;
+                    render();
+                };
+            });
+        }
+
+        async function toggleNotifications() {
+            if (typeof Notification === "undefined") {
+                window.alert("Este navegador nao suporta notificacoes.");
+                return;
+            }
+
+            if (Notification.permission === "default") {
+                const permission = await Notification.requestPermission();
+                state.notificationPermission = permission;
+                if (permission !== "granted") {
+                    state.notificationsMuted = true;
+                } else {
+                    state.notificationsMuted = false;
+                }
+            } else if (Notification.permission === "granted") {
+                state.notificationsMuted = !state.notificationsMuted;
+            } else {
+                window.alert("Notificacoes bloqueadas no navegador. Libere manualmente nas configuracoes do site.");
+            }
+
+            writeUISettings();
+            updateNotificationButton();
+        }
+
+        function updateNotificationButton() {
+            const button = document.getElementById("notificationToggle");
+            const enabled = !state.notificationsMuted && state.notificationPermission === "granted";
+            button.textContent = enabled ? "Silenciar notificacoes" : "Ativar notificacoes";
+        }
+
         function populateFilters() {
             document.getElementById("stageFilter").innerHTML = `
                 <option value="all">Todas</option>
@@ -1529,6 +1672,7 @@
             document.getElementById("lastUpdatedLabel").textContent = state.hasConnectionError
                 ? "Falha de sincronizacao com a base"
                 : `Atualizado ${relativeTime(state.lastUpdatedAt.toISOString())}`;
+            updateNotificationButton();
         }
 
         function render() {
@@ -1581,6 +1725,8 @@
 
         document.getElementById("refreshButton").addEventListener("click", loadLeads);
         document.getElementById("seedButton").addEventListener("click", seedLead);
+        document.getElementById("notificationToggle").addEventListener("click", toggleNotifications);
+        document.getElementById("resetDoneButton").addEventListener("click", resetFinalizedLeads);
 
         populateFilters();
         loadLeads();
@@ -1588,6 +1734,12 @@
         state.syncTimer = window.setInterval(() => {
             loadLeads({ silent: true });
         }, SYNC_INTERVAL_MS);
+
+        window.setInterval(() => {
+            if (state.leads.length) {
+                render();
+            }
+        }, 1000);
     </script>
 </body>
 </html>
