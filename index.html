@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sun Prime CRM V2</title>
+
+<title>Sun Prime CRM PRO</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -15,6 +16,12 @@
   --primary:#2563eb;
 }
 
+body.light{
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+}
+
 body{
   font-family:'Inter';
   background:var(--bg);
@@ -24,65 +31,11 @@ body{
 
 .page{max-width:1400px;margin:auto;}
 
-.card{
-  background:var(--card);
-  border-radius:16px;
-  padding:15px;
-  backdrop-filter:blur(10px);
-}
-
-.summary-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-  margin-bottom:20px;
-}
-
-.summary-card strong{
-  font-size:22px;
-}
-
-.layout{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-}
-
-.panel h2{margin-bottom:10px;}
-
-.lead-card{
-  background:rgba(255,255,255,0.03);
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:10px;
-  border-left:5px solid;
-}
-
-.card-header{
-  display:flex;
-  justify-content:space-between;
-}
-
-.badge{
-  font-size:12px;
-  opacity:.7;
-}
-
-.card-actions button{
-  margin-top:8px;
-  margin-right:5px;
-  padding:5px 8px;
-  border:none;
-  border-radius:6px;
-  background:var(--primary);
-  color:white;
-  cursor:pointer;
-}
-
 .topbar{
   display:flex;
   gap:10px;
-  margin-bottom:15px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
 }
 
 button{
@@ -94,6 +47,92 @@ button{
   cursor:pointer;
 }
 
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* DASHBOARD */
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.summary-card span{
+  font-size:12px;
+  opacity:.7;
+}
+
+.summary-card strong{
+  font-size:22px;
+}
+
+/* PIPELINE */
+.layout{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+.panel h2{
+  margin-bottom:10px;
+}
+
+/* CARD */
+.lead-card{
+  background:rgba(255,255,255,0.03);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+  border-left:5px solid;
+  transition:0.2s;
+}
+
+.lead-card:hover{
+  transform:translateY(-2px);
+}
+
+/* HEADER */
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+.badge{
+  font-size:11px;
+  opacity:.6;
+}
+
+/* BODY */
+.card-body{
+  font-size:13px;
+  margin-bottom:8px;
+}
+
+/* METRICS */
+.card-metrics{
+  font-size:12px;
+  opacity:.7;
+}
+
+/* ACTIONS */
+.card-actions{
+  margin-top:8px;
+}
+
+.card-actions button{
+  margin-right:5px;
+  padding:5px 8px;
+  font-size:12px;
+}
+
+/* MOBILE */
 @media(max-width:900px){
   .layout{grid-template-columns:1fr;}
 }
@@ -104,20 +143,35 @@ button{
 
 <div class="page">
 
-<h2>⚡ Sun Prime CRM</h2>
+<h2>⚡ Sun Prime CRM PRO</h2>
 
 <div class="topbar">
   <button onclick="testeLead()">+ Lead</button>
+  <button onclick="toggleTema()">🌙 Tema</button>
+  <button onclick="toggleSom()">🔊 Som</button>
+  <button onclick="trocarAba('pipeline')">Pipeline</button>
+  <button onclick="trocarAba('finalizados')">Finalizados</button>
 </div>
 
 <!-- DASHBOARD -->
 <div class="summary-grid">
-  <div class="summary-card card">Leads<br><strong id="total"></strong></div>
-  <div class="summary-card card">Atendimento<br><strong id="att"></strong></div>
-  <div class="summary-card card">Finalizados<br><strong id="fin"></strong></div>
+  <div class="summary-card card">
+    <span>Total Leads</span>
+    <strong id="total"></strong>
+  </div>
+  <div class="summary-card card">
+    <span>Em Atendimento</span>
+    <strong id="att"></strong>
+  </div>
+  <div class="summary-card card">
+    <span>Finalizados</span>
+    <strong id="fin"></strong>
+  </div>
 </div>
 
 <!-- PIPELINE -->
+<div id="pipeline">
+
 <div class="layout">
 
 <div class="card panel">
@@ -130,38 +184,63 @@ button{
 <div id="atendimento"></div>
 </div>
 
-<div class="card panel">
-<h2>🟢 Finalizados</h2>
-<div id="finalizado"></div>
 </div>
 
 </div>
+
+<!-- FINALIZADOS -->
+<div id="finalizados" style="display:none">
+  <div class="card panel">
+    <h2>🟢 Finalizados</h2>
+    <div id="finalizado"></div>
+  </div>
+</div>
+
+<audio id="som">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+</audio>
 
 </div>
 
 <script>
 const API="https://sunprime-painel.vercel.app/api/pedidos";
 
-let cache={};
+let somAtivo=true;
 let ids=new Set();
 
-Notification.requestPermission();
+// tema
+function toggleTema(){
+ document.body.classList.toggle("light");
+}
 
-// SLA cor
-function corTempo(seg){
-  if(seg<60)return "#10b981";
-  if(seg<300)return "#f59e0b";
-  return "#ef4444";
+// som
+function toggleSom(){
+ somAtivo=!somAtivo;
+ alert(somAtivo?"Som ON":"Som OFF");
+}
+
+// abas
+function trocarAba(aba){
+ document.getElementById("pipeline").style.display="none";
+ document.getElementById("finalizados").style.display="none";
+ document.getElementById(aba).style.display="block";
+}
+
+// SLA
+function corTempo(s){
+ if(s<60)return "#10b981";
+ if(s<300)return "#f59e0b";
+ return "#ef4444";
 }
 
 function tempo(data){
-  const s=(Date.now()-new Date(data))/1000;
-  if(s<60)return Math.floor(s)+"s";
-  if(s<3600)return Math.floor(s/60)+"m";
-  return Math.floor(s/3600)+"h";
+ const s=(Date.now()-new Date(data))/1000;
+ if(s<60)return Math.floor(s)+"s";
+ if(s<3600)return Math.floor(s/60)+"m";
+ return Math.floor(s/3600)+"h";
 }
 
-// criar lead teste
+// lead fake
 function testeLead(){
  fetch(API,{
   method:"POST",
@@ -176,11 +255,6 @@ function testeLead(){
  });
 }
 
-// assumir lead
-function assumir(id){
- atualizar(id,"em atendimento");
-}
-
 // atualizar
 function atualizar(id,status){
  fetch(API,{
@@ -193,9 +267,9 @@ function atualizar(id,status){
 // render
 function render(dados){
 
- document.getElementById("novo").innerHTML="";
- document.getElementById("atendimento").innerHTML="";
- document.getElementById("finalizado").innerHTML="";
+ novo.innerHTML="";
+ atendimento.innerHTML="";
+ finalizado.innerHTML="";
 
  let total=dados.length;
  let att=0;
@@ -203,13 +277,9 @@ function render(dados){
 
  dados.forEach(d=>{
 
-  cache[d.id]=d;
-
   if(!ids.has(d.id)){
     ids.add(d.id);
-    if(Notification.permission==="granted"){
-      new Notification("Novo Lead",{body:d.nome});
-    }
+    if(somAtivo) document.getElementById("som").play();
   }
 
   if(d.status==="em atendimento")att++;
@@ -218,8 +288,8 @@ function render(dados){
   let card=document.createElement("div");
   card.className="lead-card";
 
-  let segundos=(Date.now()-new Date(d.criadoEm))/1000;
-  card.style.borderLeftColor=corTempo(segundos);
+  let s=(Date.now()-new Date(d.criadoEm))/1000;
+  card.style.borderLeftColor=corTempo(s);
 
   card.innerHTML=`
     <div class="card-header">
@@ -227,14 +297,17 @@ function render(dados){
       <span class="badge">${d.status}</span>
     </div>
 
-    <div>📞 ${d.telefone}</div>
-    <div>📍 ${d.cidade}</div>
-    <div>👤 ${d.responsavel || "Livre"}</div>
+    <div class="card-body">
+      📞 ${d.telefone}<br>
+      📍 ${d.cidade}
+    </div>
 
-    <div>⏱ ${tempo(d.criadoEm)}</div>
+    <div class="card-metrics">
+      ⏱ ${tempo(d.criadoEm)}
+    </div>
 
     <div class="card-actions">
-      <button onclick="assumir(${d.id})">Atender</button>
+      <button onclick="atualizar(${d.id},'em atendimento')">Atender</button>
       <button onclick="atualizar(${d.id},'finalizado')">Finalizar</button>
     </div>
   `;
@@ -245,10 +318,14 @@ function render(dados){
 
  });
 
- document.getElementById("total").innerText=total;
- document.getElementById("att").innerText=att;
- document.getElementById("fin").innerText=fin;
+ totalEl.innerText=total;
+ attEl.innerText=att;
+ finEl.innerText=fin;
 }
+
+const totalEl=document.getElementById("total");
+const attEl=document.getElementById("att");
+const finEl=document.getElementById("fin");
 
 // loop
 function carregar(){
