@@ -88,6 +88,10 @@ async function listLeads() {
     return supabaseFetch("?select=*&order=updatedAt.desc");
 }
 
+async function listFinalizedDiagnostics() {
+    return supabaseFetch("?select=id,stage,botEstado,status&or=(stage.eq.done,botEstado.eq.FINALIZADO,status.eq.FINALIZADO)");
+}
+
 async function deleteLead(id) {
     return supabaseFetch(`?id=eq.${encodeURIComponent(id)}`, {
         method: "DELETE"
@@ -139,6 +143,15 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "GET") {
+            if (req.query?.scope === "finalized" && req.query?.diagnostics === "1") {
+                const items = await listFinalizedDiagnostics();
+                return jsonResponse(res, 200, {
+                    ok: true,
+                    count: Array.isArray(items) ? items.length : 0,
+                    items
+                });
+            }
+
             const items = await listLeads();
             return jsonResponse(res, 200, { ok: true, items });
         }

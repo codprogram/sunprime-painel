@@ -1632,30 +1632,53 @@
 
             showToast("Chave recebida. Validando e apagando finalizados...", "info");
 
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    action: "reset_finalized",
-                    masterKey
-                })
-            });
-            const data = await response.json();
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        action: "reset_finalized",
+                        masterKey
+                    })
+                });
 
-            if (!response.ok || !data.ok) {
-                showToast(data.error || "Nao foi possivel resetar os finalizados.", "error");
-                window.alert(data.error || "Nao foi possivel resetar os finalizados.");
-                return;
+                const rawText = await response.text();
+                const data = rawText ? JSON.parse(rawText) : {};
+
+                if (!response.ok || !data.ok) {
+                    const errorMessage = data.error || "Nao foi possivel resetar os finalizados.";
+                    showToast(errorMessage, "error");
+                    window.alert(errorMessage);
+                    return;
+                }
+
+                await loadLeads({ silent: true });
+                state.selectedLeadId = state.leads[0]?.id || null;
+                render();
+
+                if ((data.deletedCount || 0) === 0) {
+                    const diagnosticsResponse = await fetch(`${API_URL}?scope=finalized&diagnostics=1`, {
+                        cache: "no-store"
+                    });
+                    const diagnostics = await diagnosticsResponse.json();
+                    const message = diagnostics?.count
+                        ? `Nenhum lead foi apagado, mas ainda existem ${diagnostics.count} finalizado(s) detectado(s). Recarregue e tente novamente.`
+                        : "Nenhum lead finalizado foi encontrado para apagar.";
+                    showToast(message, diagnostics?.count ? "error" : "info");
+                    window.alert(message);
+                    return;
+                }
+
+                const message = `Reset concluido. ${data.deletedCount || 0} finalizado(s) apagado(s).`;
+                showToast(message, "success");
+                window.alert(message);
+            } catch (error) {
+                const message = "Falha inesperada ao resetar finalizados.";
+                showToast(message, "error");
+                window.alert(`${message}\n\n${error.message || error}`);
             }
-
-            await loadLeads({ silent: true });
-            state.selectedLeadId = state.leads[0]?.id || null;
-            render();
-            const message = `Reset concluido. ${data.deletedCount || 0} finalizado(s) apagado(s).`;
-            showToast(message, "success");
-            window.alert(message);
         }
 
         function notifyForNewLeads(incomingLeads) {
