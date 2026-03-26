@@ -1,80 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sun Prime SaaS</title>
+  <title>Sun Prime CRM</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #0b1220;
-      color: #e2e8f0;
-      padding: 20px;
+    :root {
+      --bg:#0b1220;
+      --card:rgba(255,255,255,0.05);
+      --text:#e2e8f0;
     }
 
-    .topbar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+    body.light {
+      --bg:#f1f5f9;
+      --card:rgba(0,0,0,0.05);
+      --text:#0f172a;
     }
+
+    body {
+      font-family:'Inter',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:20px;
+    }
+
+    .topbar { display:flex; gap:10px; margin-bottom:20px; }
 
     button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 8px;
-      border-radius: 8px;
-      cursor: pointer;
+      background:#2563eb;
+      color:white;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
     }
 
-    .container {
-      display: flex;
-      gap: 20px;
-    }
+    .container { display:flex; gap:20px; }
 
     .coluna {
-      flex: 1;
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 12px;
+      flex:1;
+      background:var(--card);
+      padding:15px;
+      border-radius:12px;
     }
 
     .card {
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-      border-left: 4px solid;
-      backdrop-filter: blur(10px);
-      transition: 0.2s;
+      background:rgba(255,255,255,0.03);
+      padding:15px;
+      border-radius:12px;
+      margin-bottom:10px;
+      border-left:4px solid;
+      backdrop-filter:blur(10px);
+      transition:0.2s;
     }
 
-    .card:hover {
-      transform: scale(1.02);
-    }
+    .card:hover { transform:scale(1.02); }
 
-    .novo { border-color: #f59e0b; }
-    .atendimento { border-color: #3b82f6; }
-    .finalizado { border-color: #10b981; }
+    .novo { border-color:#f59e0b; }
+    .atendimento { border-color:#3b82f6; }
+    .finalizado { border-color:#10b981; }
 
-    .tempo {
-      font-size: 12px;
-      opacity: 0.7;
-      margin-top: 5px;
-    }
+    .tempo { font-size:12px; opacity:0.7; margin-top:5px; }
 
-    .hidden { display: none; }
+    .hidden { display:none; }
 
   </style>
-
 </head>
+
 <body>
 
-<h2>⚡ Sun Prime SaaS</h2>
+<h2>⚡ Sun Prime CRM</h2>
 
 <div class="topbar">
   <button onclick="testeLead()">+ Lead</button>
+  <button onclick="toggleTema()">🌙 Tema</button>
+  <button onclick="toggleSom()">🔇 Som</button>
   <button onclick="trocarAba('pipeline')">Pipeline</button>
   <button onclick="trocarAba('finalizados')">Finalizados</button>
 </div>
@@ -91,69 +92,102 @@
   <div id="finalizado"></div>
 </div>
 
+<audio id="som">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+</audio>
+
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
 
+let somAtivo = true;
+let cache = {};
 let ids = new Set();
 
-// formatar data
-function formatar(data) {
-  if (!data) return "";
-  const d = new Date(data);
-  return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+// ===== TEMA =====
+function toggleTema() {
+  document.body.classList.toggle("light");
 }
 
-// trocar aba
+// ===== SOM =====
+function toggleSom() {
+  somAtivo = !somAtivo;
+  alert(somAtivo ? "Som ON" : "Som OFF");
+}
+
+// ===== ABA =====
 function trocarAba(aba) {
   document.getElementById("pipeline").classList.add("hidden");
   document.getElementById("finalizados").classList.add("hidden");
   document.getElementById(aba).classList.remove("hidden");
 }
 
-// gerar
+// ===== FORMATAR DATA =====
+function formatar(data) {
+  if (!data) return "";
+  const d = new Date(data);
+  return d.toLocaleDateString()+" "+d.toLocaleTimeString();
+}
+
+// ===== TEMPO =====
+function tempo(data) {
+  const diff = Math.floor((Date.now() - new Date(data)) / 1000);
+  if (diff < 60) return diff+"s";
+  if (diff < 3600) return Math.floor(diff/60)+"m";
+  return Math.floor(diff/3600)+"h";
+}
+
+// ===== GERAR =====
 function testeLead() {
-  fetch(API, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      nome: "Cliente",
-      telefone: "81999999999",
-      cidade: "Recife",
-      status: "novo",
-      criadoEm: new Date().toISOString()
+  fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      nome:"Cliente",
+      telefone:"81999999999",
+      cidade:"Recife",
+      status:"novo",
+      criadoEm:new Date().toISOString()
     })
   });
 }
 
-// atualizar
-function atualizar(id, status) {
+// ===== ATUALIZAR =====
+function atualizar(id,status){
 
-  let payload = { id, status };
+  let payload={id,status};
 
-  if (status === "finalizado") {
-    payload.finalizadoEm = new Date().toISOString();
+  if(status==="finalizado"){
+    payload.finalizadoEm=new Date().toISOString();
   }
 
-  fetch(API, {
-    method: "PUT",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload)
+  fetch(API,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
   });
 }
 
-// render SEM apagar
-function render(dados) {
+// ===== RENDER =====
+function render(dados){
 
-  dados.forEach(d => {
+  dados.forEach(d=>{
 
-    let card = document.getElementById("lead-" + d.id);
+    cache[d.id]=d;
 
-    if (!card) {
-      card = document.createElement("div");
-      card.id = "lead-" + d.id;
-      card.className = "card";
+    let card=document.getElementById("lead-"+d.id);
 
-      card.innerHTML = `
+    // som novo lead
+    if(!ids.has(d.id)){
+      ids.add(d.id);
+      if(somAtivo) document.getElementById("som").play();
+    }
+
+    if(!card){
+      card=document.createElement("div");
+      card.id="lead-"+d.id;
+      card.className="card";
+
+      card.innerHTML=`
         <strong>${d.nome}</strong><br>
         ${d.telefone}<br>
         ${d.cidade}
@@ -161,43 +195,59 @@ function render(dados) {
         <div class="tempo" id="tempo-${d.id}"></div>
 
         <div style="margin-top:10px">
-          <button onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
-          <button onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
+          <button onclick="atualizar(${d.id},'em atendimento')">Atender</button>
+          <button onclick="atualizar(${d.id},'finalizado')">Finalizar</button>
         </div>
       `;
     }
 
-    // classe
+    // classes
     card.classList.remove("novo","atendimento","finalizado");
     card.classList.add(d.status);
 
-    // mover
-    if (d.status === "novo")
+    // mover correto
+    if(d.status==="novo")
       document.getElementById("novo").prepend(card);
 
-    else if (d.status === "em atendimento")
+    else if(d.status==="em atendimento")
       document.getElementById("atendimento").prepend(card);
 
     else
       document.getElementById("finalizado").prepend(card);
 
-    // atualizar datas
-    const tempoEl = document.getElementById("tempo-" + d.id);
+    // atualizar tempo + datas
+    const el=document.getElementById("tempo-"+d.id);
 
-    tempoEl.innerHTML = `
+    el.innerHTML=`
+      ⏱ ${tempo(d.criadoEm)}<br>
       📅 ${formatar(d.criadoEm)}<br>
-      ${d.finalizadoEm ? "✅ " + formatar(d.finalizadoEm) : ""}
+      ${d.finalizadoEm ? "✅ "+formatar(d.finalizadoEm) : ""}
     `;
   });
 }
 
-// loop
-function carregar() {
+// ===== LOOP =====
+function carregar(){
   fetch(API).then(r=>r.json()).then(render);
 }
 
-setInterval(carregar, 3000);
+// tempo em tempo real
+setInterval(()=>{
+  Object.values(cache).forEach(d=>{
+    const el=document.getElementById("tempo-"+d.id);
+    if(el){
+      el.innerHTML=`
+        ⏱ ${tempo(d.criadoEm)}<br>
+        📅 ${formatar(d.criadoEm)}<br>
+        ${d.finalizadoEm ? "✅ "+formatar(d.finalizadoEm) : ""}
+      `;
+    }
+  });
+},1000);
+
+setInterval(carregar,3000);
 carregar();
+
 </script>
 
 </body>
