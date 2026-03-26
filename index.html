@@ -13,7 +13,6 @@
 <style>
 body { font-family: 'Inter', sans-serif; }
 </style>
-
 </head>
 
 <body class="bg-slate-900 text-white">
@@ -78,23 +77,28 @@ const API="https://sunprime-painel.vercel.app/api/pedidos";
 
 let somAtivo=true;
 let ids=new Set();
+const elementos={};
 
+// tema
 function toggleTema(){
  document.body.classList.toggle("bg-white");
  document.body.classList.toggle("text-black");
 }
 
+// som
 function toggleSom(){
  somAtivo=!somAtivo;
  alert(somAtivo?"Som ON":"Som OFF");
 }
 
+// SLA cor
 function corTempo(s){
  if(s<60)return "border-green-500";
  if(s<300)return "border-yellow-400";
  return "border-red-500";
 }
 
+// tempo
 function tempo(data){
  const s=(Date.now()-new Date(data))/1000;
  if(s<60)return Math.floor(s)+"s";
@@ -102,6 +106,7 @@ function tempo(data){
  return Math.floor(s/3600)+"h";
 }
 
+// criar lead
 function testeLead(){
  fetch(API,{
   method:"POST",
@@ -116,6 +121,7 @@ function testeLead(){
  });
 }
 
+// atualizar status
 function atualizar(id,status){
  fetch(API,{
   method:"PUT",
@@ -124,11 +130,8 @@ function atualizar(id,status){
  });
 }
 
+// render sem piscar
 function render(dados){
-
- novo.innerHTML="";
- atendimento.innerHTML="";
- finalizado.innerHTML="";
 
  let total=dados.length;
  let att=0;
@@ -141,12 +144,18 @@ function render(dados){
     if(somAtivo) document.getElementById("som").play();
   }
 
-  if(d.status==="em atendimento")att++;
-  if(d.status==="finalizado")fin++;
+  if(d.status==="em atendimento") att++;
+  if(d.status==="finalizado") fin++;
+
+  let card = elementos[d.id];
+
+  if(!card){
+    card = document.createElement("div");
+    elementos[d.id] = card;
+  }
 
   let s=(Date.now()-new Date(d.criadoEm))/1000;
 
-  let card=document.createElement("div");
   card.className=`bg-slate-700 p-3 rounded-lg mb-3 border-l-4 ${corTempo(s)} hover:scale-[1.02] transition`;
 
   card.innerHTML=`
@@ -170,8 +179,8 @@ function render(dados){
     </div>
   `;
 
-  if(d.status==="novo")novo.appendChild(card);
-  else if(d.status==="em atendimento")atendimento.appendChild(card);
+  if(d.status==="novo") novo.appendChild(card);
+  else if(d.status==="em atendimento") atendimento.appendChild(card);
   else finalizado.appendChild(card);
 
  });
@@ -181,6 +190,7 @@ function render(dados){
  document.getElementById("fin").innerText=fin;
 }
 
+// loop
 function carregar(){
  fetch(API).then(r=>r.json()).then(render);
 }
