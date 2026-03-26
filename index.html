@@ -2,103 +2,143 @@
 <html>
 <head>
   <title>Sun Prime - Painel</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    #contador {
+      margin-bottom: 20px;
+      color: #94a3b8;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    .novo { background: #f59e0b; }
+    .atendimento { background: #3b82f6; }
+    .finalizado { background: #10b981; }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      border-left: 6px solid #334155;
+    }
+
+    .tempo {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 5px;
+    }
+  </style>
+
 </head>
 <body>
 
-<h2>⚡ Painel de Leads Sun Prime</h2>
+<h2>⚡ Sun Prime - Painel de Leads</h2>
+<h3 id="contador">Total: 0</h3>
 
-<h3 id="contador">Total de Leads: 0</h3>
-
-<button onclick="testeLead()">➕ Gerar Lead de Teste</button>
+<button onclick="testeLead()">➕ Gerar Lead</button>
 
 <div id="lista"></div>
 
 <script>
 const API = "https://sunprime-painel.vercel.app/api/pedidos";
 
-// GERAR LEAD DE TESTE
+// CRIA LEAD
 function testeLead() {
   fetch(API, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
       nome: "Cliente Teste",
       telefone: "81999999999",
       cidade: "Recife",
-      status: "novo"
+      status: "novo",
+      criadoEm: new Date().toISOString()
     })
-  })
-  .then(function(res) {
-    return res.json();
-  })
-  .then(function() {
-    carregar();
-  })
-  .catch(function() {
-    alert("Erro ao enviar");
-  });
+  }).then(carregar);
 }
 
-// ATUALIZAR STATUS
+// ATUALIZA STATUS
 function atualizar(id, status) {
   fetch(API, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ id, status })
-  })
-  .then(function() {
-    carregar();
-  });
+  }).then(carregar);
 }
 
-// CARREGAR LISTA
+// CALCULAR TEMPO
+function tempoDecorrido(data) {
+  const agora = new Date();
+  const criado = new Date(data);
+  const diff = Math.floor((agora - criado) / 1000);
+
+  if (diff < 60) return diff + "s atrás";
+  if (diff < 3600) return Math.floor(diff/60) + " min atrás";
+  return Math.floor(diff/3600) + " h atrás";
+}
+
+// CARREGAR
 function carregar() {
   fetch(API)
-    .then(function(res) {
-      return res.json();
-    })
-    .then(function(dados) {
+    .then(res => res.json())
+    .then(dados => {
 
-      const lista = document.getElementById('lista');
-      lista.innerHTML = '';
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
 
       document.getElementById("contador").innerText =
         "Total de Leads: " + dados.length;
 
-      dados.forEach(function(d) {
+      dados.forEach(d => {
 
-        let cor = "#ccc";
-        if (d.status === "novo") cor = "orange";
-        if (d.status === "em atendimento") cor = "blue";
-        if (d.status === "finalizado") cor = "green";
+        let cor = "#334155";
+        if (d.status === "novo") cor = "#f59e0b";
+        if (d.status === "em atendimento") cor = "#3b82f6";
+        if (d.status === "finalizado") cor = "#10b981";
 
-        const div = document.createElement('div');
+        const tempo = d.criadoEm ? tempoDecorrido(d.criadoEm) : "agora";
 
-        div.innerHTML =
-          "<div style='border-left: 6px solid " + cor + "; padding:10px; margin:10px 0; background:#f9f9f9'>" +
-          "<strong>👤 " + (d.nome || "Cliente") + "</strong><br>" +
-          "📱 " + (d.telefone || "") + "<br>" +
-          "📍 " + (d.cidade || "") + "<br>" +
-          "📊 Status: " + (d.status || "novo") + "<br><br>" +
+        const div = document.createElement("div");
+        div.className = "card";
+        div.style.borderLeft = "6px solid " + cor;
 
-          "<button onclick='atualizar(" + d.id + ", \"em atendimento\")'>Atender</button> " +
-          "<button onclick='atualizar(" + d.id + ", \"finalizado\")'>Finalizar</button>" +
-          "</div>";
+        div.innerHTML = `
+          <strong>👤 ${d.nome || "Cliente"}</strong><br>
+          📱 ${d.telefone || ""}<br>
+          📍 ${d.cidade || ""}<br>
+          📊 Status: ${d.status || "novo"}<br>
+
+          <div class="tempo">⏱ ${tempo}</div><br>
+
+          <button class="atendimento" onclick="atualizar(${d.id}, 'em atendimento')">Atender</button>
+          <button class="finalizado" onclick="atualizar(${d.id}, 'finalizado')">Finalizar</button>
+        `;
 
         lista.appendChild(div);
       });
 
-    })
-    .catch(function() {
-      alert("Erro ao carregar dados");
     });
 }
 
-// ATUALIZA AUTOMÁTICO
+// AUTO UPDATE
 setInterval(carregar, 2000);
 carregar();
 
