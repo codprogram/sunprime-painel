@@ -95,7 +95,7 @@ async function deleteLead(id) {
 }
 
 async function deleteFinalizedLeads() {
-    return supabaseFetch("?stage=eq.done&select=id,stage", {
+    return supabaseFetch("?or=(stage.eq.done,botEstado.eq.FINALIZADO,status.eq.FINALIZADO)&select=id,stage,botEstado,status", {
         method: "DELETE"
     });
 }
