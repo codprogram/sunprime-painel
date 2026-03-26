@@ -22,20 +22,7 @@ export default function handler(req, res) {
     dados = dados.map(d =>
       d.id === id ? { ...d, status } : d
     );
-async function testeLead() {
-  await fetch("/api/pedidos", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      nome: "Cliente Teste",
-      telefone: "81999999999",
-      cidade: "Recife",
-      status: "novo"
-    })
-  });
-}
+
     return res.status(200).json({ ok: true });
   }
 }
